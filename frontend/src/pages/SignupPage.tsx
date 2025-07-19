@@ -1,15 +1,41 @@
-import { useState, type FormEvent } from "react";
-import Input from "../components/UI/Input";
-import Divider from "../components/UI/Divider";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useForm, Controller, type SubmitHandler } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Mail, User, Eye, EyeOff } from "lucide-react";
 
+import Input from "../components/UI/Input";
+import Divider from "../components/UI/Divider";
+
+const signupSchema = z
+  .object({
+    email: z.string().email("Please enter a valid email address."),
+    fullname: z.string().min(3, "Fullname must be at least 3 characters long."),
+    password: z.string().min(6, "Password must be at least 6 characters long."),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match.",
+  });
+
+type FormFields = z.infer<typeof signupSchema>;
+
 function SignupPage() {
-  const [formData, setFormData] = useState({
-    email: "",
-    fullname: "",
-    password: "",
-    confirmPassword: "",
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormFields>({
+    defaultValues: {
+      email: "",
+      fullname: "",
+      password: "",
+      confirmPassword: "",
+    },
+    resolver: zodResolver(signupSchema),
+    mode: "onChange",
   });
 
   const [visibility, setVisibility] = useState({
@@ -21,105 +47,143 @@ function SignupPage() {
     "px-4 py-2 border border-emerald-200 rounded-xl focus:outline-none focus:border-2 focus:border-emerald-400";
   const commonLabelSyles = "font-semibold";
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    console.log("Form data: ", formData);
+  const onSubmit: SubmitHandler<FormFields> = (data) => {
+    console.log("Form submitted successfully:", data);
   };
 
   return (
-    <div className="h-screen flex items-center justify-center">
+    <div className="h-screen flex items-center justify-center bg-gray-50 p-4">
       <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-6 w-full sm:w-[24rem] md:w-[28rem] lg:w-96"
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex flex-col gap-4 w-full sm:w-[24rem] md:w-[28rem] lg:w-96"
       >
         <div className="flex justify-center">
-          <h2 className="text-2xl font-semibold">Create an Account</h2>
+          <h2 className="text-2xl font-semibold text-gray-800">
+            Create an Account
+          </h2>
         </div>
-        <Input
-          label="Email"
-          name="email"
-          placeholder="Enter email"
-          size="md"
-          type="email"
-          value={formData["email"]}
-          onChange={handleChange}
-          inputClassName={commonInputStyles}
-          labelClassName={commonLabelSyles}
-          leftIcon={<Mail />}
-        />
 
-        <Input
-          label="Fullname"
-          name="fullname"
-          placeholder="Enter full name"
-          size="md"
-          type="text"
-          value={formData["fullname"]}
-          onChange={handleChange}
-          inputClassName={commonInputStyles}
-          labelClassName={commonLabelSyles}
-          leftIcon={<User />}
-        />
+        <div className="flex flex-col gap-1">
+          <Controller
+            name="email"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="Enter Email"
+                label="Email"
+                type="email"
+                inputClassName={commonInputStyles}
+                labelClassName={commonLabelSyles}
+                leftIcon={<Mail />}
+              />
+            )}
+          />
+          {errors.email && (
+            <div className="text-red-500 text-sm">{errors.email.message}</div>
+          )}
+        </div>
 
-        <Input
-          label="Password"
-          name="password"
-          placeholder="Enter password"
-          size="md"
-          type={visibility["password"] ? "text" : "password"}
-          value={formData["password"]}
-          onChange={handleChange}
-          inputClassName={commonInputStyles}
-          labelClassName={commonLabelSyles}
-          leftIcon={<Lock />}
-          rightIcon={visibility["password"] ? <Eye /> : <EyeOff />}
-          onRightIconClick={() =>
-            setVisibility((prev) => ({ ...prev, password: !prev.password }))
-          }
-        />
+        <div className="flex flex-col gap-1">
+          <Controller
+            name="fullname"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                label="Fullname"
+                placeholder="Enter full name"
+                type="text"
+                inputClassName={commonInputStyles}
+                labelClassName={commonLabelSyles}
+                leftIcon={<User />}
+              />
+            )}
+          />
+          {errors.fullname && (
+            <div className="text-red-500 text-sm">
+              {errors.fullname.message}
+            </div>
+          )}
+        </div>
 
-        <Input
-          label="Confirm Password"
-          name="confirmPassword"
-          placeholder="Re-enter password"
-          size="md"
-          type={visibility["confirmPassword"] ? "text" : "password"}
-          value={formData["confirmPassword"]}
-          onChange={handleChange}
-          inputClassName={commonInputStyles}
-          labelClassName={commonLabelSyles}
-          leftIcon={<Lock />}
-          rightIcon={visibility["confirmPassword"] ? <Eye /> : <EyeOff />}
-          onRightIconClick={() =>
-            setVisibility((prev) => ({
-              ...prev,
-              confirmPassword: !prev.confirmPassword,
-            }))
-          }
-        />
+        <div className="flex flex-col gap-1">
+          <Controller
+            name="password"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                label="Password"
+                placeholder="Enter password"
+                type={visibility.password ? "text" : "password"}
+                inputClassName={commonInputStyles}
+                labelClassName={commonLabelSyles}
+                leftIcon={<Lock />}
+                rightIcon={visibility.password ? <Eye /> : <EyeOff />}
+                onRightIconClick={() =>
+                  setVisibility((prev) => ({
+                    ...prev,
+                    password: !prev.password,
+                  }))
+                }
+              />
+            )}
+          />
+          {errors.password && (
+            <div className="text-red-500 text-sm">
+              {errors.password.message}
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <Controller
+            name="confirmPassword"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                label="Confirm Password"
+                placeholder="Re-enter password"
+                type={visibility.confirmPassword ? "text" : "password"}
+                inputClassName={commonInputStyles}
+                labelClassName={commonLabelSyles}
+                leftIcon={<Lock />}
+                rightIcon={visibility.confirmPassword ? <Eye /> : <EyeOff />}
+                onRightIconClick={() =>
+                  setVisibility((prev) => ({
+                    ...prev,
+                    confirmPassword: !prev.confirmPassword,
+                  }))
+                }
+              />
+            )}
+          />
+          {errors.confirmPassword && (
+            <div className="text-red-500 text-sm">
+              {errors.confirmPassword.message}
+            </div>
+          )}
+        </div>
 
         <button
           type="submit"
-          className="bg-emerald-500 text-white py-3 rounded-3xl hover:bg-emerald-600 transition"
+          className="bg-emerald-500 text-white py-3 mt-2 rounded-xl hover:bg-emerald-600 transition font-semibold"
         >
-          Signup
+          Sign Up
         </button>
 
         <Divider>or</Divider>
 
         <button
           type="button"
-          className="bg-white text-emerald-700 py-3 border border-emerald-200 rounded-3xl hover:bg-emerald-50 transition font-semibold"
+          className="bg-white text-emerald-700 py-3 border border-emerald-200 rounded-xl hover:bg-emerald-50 transition font-semibold"
         >
-          Sign up with google
+          Sign up with Google
         </button>
 
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center mt-2">
           <p className="text-sm text-gray-500 font-medium">
             Already Registered?
             <Link
