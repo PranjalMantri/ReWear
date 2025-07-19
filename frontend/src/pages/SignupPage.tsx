@@ -169,7 +169,7 @@ function SignupPage() {
 
         <button
           type="submit"
-          className="bg-emerald-500 text-white py-3 mt-2 rounded-xl hover:bg-emerald-600 transition font-semibold"
+          className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-3 mt-2 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition font-semibold"
         >
           Sign Up
         </button>
