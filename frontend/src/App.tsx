@@ -4,6 +4,7 @@ import SignupPage from "./pages/SignupPage";
 import SigninPage from "./pages/SigninPage";
 import useUserStore from "./store/user.store";
 import HomePage from "./pages/HomePage";
+import Layout from "./pages/Layout";
 
 function App() {
   const isUserLoggedIn = useUserStore((state) => state.isUserLoggedIn);
@@ -11,7 +12,18 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={isUserLoggedIn ? <HomePage /> : <Landing />} />
+        <Route
+          path="/"
+          element={
+            isUserLoggedIn ? (
+              <Layout>
+                <HomePage />{" "}
+              </Layout>
+            ) : (
+              <Landing />
+            )
+          }
+        />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/signin" element={<SigninPage />} />
       </Routes>
