@@ -20,11 +20,4 @@ const verifyToken = (token: string, secret: string) => {
   }
 };
 
-const createTokens = (payload: jwt.JwtPayload) => {
-  const accessToken = createAccessToken(payload);
-  const refreshToken = createRefreshToken(payload);
-
-  return { accessToken, refreshToken };
-};
-
-export { createTokens, verifyToken };
+export { verifyToken, createAccessToken, createRefreshToken };

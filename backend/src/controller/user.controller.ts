@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
 
 import User from "../model/user.model.ts";
 
@@ -6,17 +7,42 @@ import ApiError from "../util/ApiError.ts";
 import ApiResponse from "../util/ApiResponse.ts";
 import { asyncHandler } from "../util/asyncHandler.ts";
 
-import { createTokens } from "../util/jwt.ts";
+import { createAccessToken, createRefreshToken } from "../util/jwt.ts";
 
 import {
   signinSchema,
   signupSchema,
 } from "../../../common/schema/user.schema.ts";
+import { UserPayload } from "../types/express/index.js";
 
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV == "production",
   sameSite: true,
+};
+
+const createTokens = async (payload: jwt.JwtPayload) => {
+  try {
+    const user = await User.findById(payload.userId);
+
+    if (!user) {
+      throw new ApiError(404, "User does not exist");
+    }
+
+    const accessToken = createAccessToken(payload);
+    const refreshToken = createRefreshToken(payload);
+
+    user.refreshToken = refreshToken;
+
+    user?.save({ validateBeforeSave: true });
+
+    return { accessToken, refreshToken };
+  } catch (error) {
+    throw new ApiError(
+      500,
+      `Something went wrong while creating tokens: ${error}`
+    );
+  }
 };
 
 const signup = asyncHandler(async (req: Request, res: Response) => {
@@ -44,7 +70,9 @@ const signup = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(500, "Something went wrong while creating a user");
   }
 
-  const { accessToken, refreshToken } = createTokens({ userId: user._id });
+  const { accessToken, refreshToken } = await createTokens({
+    userId: user._id,
+  });
 
   res.cookie("accessToken", accessToken, {
     ...cookieOptions,
@@ -92,7 +120,7 @@ const signin = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(401, "Invalid user credentials");
   }
 
-  const { accessToken, refreshToken } = createTokens({
+  const { accessToken, refreshToken } = await createTokens({
     userId: existingUser._id,
   });
 
@@ -144,4 +172,44 @@ const getUserDetails = asyncHandler(async (req: Request, res: Response) => {
     );
 });
 
-export { signup, signin, logout, getUserDetails };
+const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
+  const incomingRefreshToken =
+    req.cookies.refreshToken || req.body.refreshToken;
+
+  if (!incomingRefreshToken) {
+    throw new ApiError(401, "Unauthorized request");
+  }
+
+  const decodedToken = jwt.verify(
+    incomingRefreshToken,
+    process.env.REFRESH_TOKEN_SECRET!
+  ) as UserPayload | null;
+
+  if (!decodedToken) {
+    throw new ApiError(401, "Token is invalid or expired");
+  }
+
+  const user = await User.findById(decodedToken.userId);
+
+  if (!user) {
+    throw new ApiError(401, "Refresh token is invalid");
+  }
+
+  if (incomingRefreshToken !== user.refreshToken) {
+    throw new ApiError(401, "Refresh token is invalid or used");
+  }
+
+  const { accessToken, refreshToken } = await createTokens({
+    userId: user._id,
+  });
+
+  res
+    .status(201)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .json(
+      new ApiResponse(200, "New tokens generated successfuly", refreshToken)
+    );
+});
+
+export { signup, signin, logout, getUserDetails, refreshAccessToken };
