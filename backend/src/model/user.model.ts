@@ -14,7 +14,7 @@ interface UserDocument extends UserInput, Document {
   _id: string;
   createdAt: Date;
   updatedAt: Date;
-  comparePassword: (candidatePassword: string) => Promise<boolean>;
+  isPasswordValid: (candidatePassword: string) => Promise<boolean>;
 }
 
 const userSchema = new Schema(
@@ -60,7 +60,7 @@ userSchema.pre<UserDocument>("save", async function (this: UserDocument, next) {
   next();
 });
 
-userSchema.methods.comparePassword = async function (
+userSchema.methods.isPasswordValid = async function (
   this: UserDocument,
   candidatePassword: string
 ): Promise<boolean> {
@@ -69,6 +69,6 @@ userSchema.methods.comparePassword = async function (
   return bcrypt.compare(candidatePassword, user.password).catch((e) => false);
 };
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model<UserDocument>("User", userSchema);
 
 export default User;
