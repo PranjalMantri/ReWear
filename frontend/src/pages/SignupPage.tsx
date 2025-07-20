@@ -8,17 +8,7 @@ import { Lock, Mail, User, Eye, EyeOff } from "lucide-react";
 import Input from "../components/UI/Input";
 import Divider from "../components/UI/Divider";
 
-const signupSchema = z
-  .object({
-    email: z.string().email("Please enter a valid email address."),
-    fullname: z.string().min(3, "Fullname must be at least 3 characters long."),
-    password: z.string().min(6, "Password must be at least 6 characters long."),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    path: ["confirmPassword"],
-    message: "Passwords do not match.",
-  });
+import { signupSchema } from "../../../common/schema/user.schema";
 
 type FormFields = z.infer<typeof signupSchema>;
 

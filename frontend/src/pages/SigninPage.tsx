@@ -6,13 +6,7 @@ import { useState } from "react";
 import { useForm, Controller, type SubmitHandler } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-const signinSchema = z.object({
-  email: z.email("Invalid Email"),
-  password: z
-    .string("Password is required")
-    .min(6, "Password must be at least 6 characters long"),
-});
+import { signinSchema } from "../../../common/schema/user.schema";
 
 type FormFields = z.infer<typeof signinSchema>;
 
