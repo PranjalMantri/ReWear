@@ -1,17 +1,16 @@
 class ApiError extends Error {
   public statusCode: number;
   public errors?: unknown;
-  public data: null;
-  public success: false;
+  public data: null = null;
+  public success: false = false;
 
   constructor(statusCode: number, message: string, errors?: unknown) {
     super(message);
 
     this.statusCode = statusCode;
-    this.message = message;
+    Object.setPrototypeOf(this, ApiError.prototype);
+
     this.errors = errors;
-    this.data = null;
-    this.success = false;
   }
 }
 
