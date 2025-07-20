@@ -13,6 +13,12 @@ import {
   signupSchema,
 } from "../../../common/schema/user.schema.ts";
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV == "production",
+  sameSite: true,
+};
+
 const signup = asyncHandler(async (req: Request, res: Response) => {
   const validatedData = signupSchema.safeParse(req.body);
 
@@ -39,12 +45,6 @@ const signup = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const { accessToken, refreshToken } = createTokens({ userId: user._id });
-
-  const cookieOptions = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV == "production",
-    sameSite: true,
-  };
 
   res.cookie("accessToken", accessToken, {
     ...cookieOptions,
@@ -96,12 +96,6 @@ const signin = asyncHandler(async (req: Request, res: Response) => {
     userId: existingUser._id,
   });
 
-  const cookieOptions = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV == "production",
-    sameSite: true,
-  };
-
   res.cookie("accessToken", accessToken, {
     ...cookieOptions,
     maxAge: 15 * 60 * 1000,
@@ -123,4 +117,12 @@ const signin = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, "User signup succcessfull", userResponse));
 });
 
-export { signup, signin };
+const logout = asyncHandler(async (req: Request, res: Response) => {
+  res
+    .status(200)
+    .clearCookie("accessToken")
+    .clearCookie("refreshToken")
+    .json(new ApiResponse(200, "Logged out user successfuly", {}));
+});
+
+export { signup, signin, logout };
