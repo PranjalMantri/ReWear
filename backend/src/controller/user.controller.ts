@@ -153,24 +153,17 @@ const logout = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, "Logged out user successfuly", {}));
 });
 
-const getUserDetails = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user?._id;
+const getCurrentUserDetails = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.user?._id;
 
-  const user = await User.findById(userId);
+    const user = await User.findById(userId).select("-password -refreshToken");
 
-  const userResponse = {
-    fullname: user?.fullname,
-    email: user?.email,
-    points: user?.points,
-    profilePicture: user?.profilePicture,
-  };
-
-  res
-    .status(200)
-    .json(
-      new ApiResponse(200, "Fetched user details successfuly", userResponse)
-    );
-});
+    res
+      .status(200)
+      .json(new ApiResponse(200, "Fetched user details successfuly", user));
+  }
+);
 
 const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
   const incomingRefreshToken =
@@ -212,4 +205,25 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
     );
 });
 
-export { signup, signin, logout, getUserDetails, refreshAccessToken };
+const getUserDetails = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.params.id;
+
+  const user = await User.findById(userId).select("-password -refreshToken");
+
+  if (!user) {
+    throw new ApiError(404, "User does not exist");
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, "Successfuly fetched user using userId", user));
+});
+
+export {
+  signup,
+  signin,
+  logout,
+  getCurrentUserDetails,
+  refreshAccessToken,
+  getUserDetails,
+};

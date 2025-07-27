@@ -3,8 +3,9 @@ import {
   signup,
   signin,
   logout,
-  getUserDetails,
+  getCurrentUserDetails,
   refreshAccessToken,
+  getUserDetails,
 } from "../controller/user.controller.ts";
 import { verifyJWT } from "../middlewares/auth.middleware.ts";
 
@@ -18,6 +19,7 @@ router.post("/refresh", refreshAccessToken);
 router.use(verifyJWT);
 
 router.get("/logout", logout);
-router.get("/me", getUserDetails);
+router.get("/me", getCurrentUserDetails);
+router.get("/:id", getUserDetails);
 
 export default router;
