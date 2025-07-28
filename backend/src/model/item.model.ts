@@ -12,6 +12,10 @@ import { z } from "zod";
 
 type ItemInput = z.infer<typeof ItemInputSchema>;
 
+interface ItemInputI extends ItemInput {
+  userId: mongoose.Schema.Types.ObjectId;
+}
+
 interface ItemDocument extends ItemInput, Document {
   _id: mongoose.Schema.Types.ObjectId;
   createdAt: Date;
@@ -28,7 +32,6 @@ const itemSchema = new Schema(
     title: {
       type: String,
       required: true,
-      unique: true,
       minlength: 3,
     },
     description: {
@@ -38,21 +41,21 @@ const itemSchema = new Schema(
     },
     category: {
       type: String,
-      enum: Object.values(CategoryEnum),
+      enum: CategoryEnum.options,
       required: true,
     },
     gender: {
       type: String,
-      enum: Object.values(GenderEnum),
+      enum: GenderEnum.options,
     },
     size: {
       type: String,
-      enum: Object.values(SizeEnum),
+      enum: SizeEnum.options,
       required: true,
     },
     condition: {
       type: String,
-      enum: Object.values(ConditionEnum),
+      enum: ConditionEnum.options,
       required: true,
     },
     tags: {
@@ -70,12 +73,12 @@ const itemSchema = new Schema(
     },
     listingType: {
       type: String,
-      enum: Object.values(ListingTypeEnum),
+      enum: ListingTypeEnum.options,
       required: true,
     },
     status: {
       type: String,
-      enum: Object.values(ItemStatusEnum),
+      enum: ItemStatusEnum.options,
       default: "active",
     },
     color: {
