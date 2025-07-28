@@ -6,8 +6,10 @@ import {
   getCurrentUserDetails,
   refreshAccessToken,
   getUserDetails,
+  updateUserProfilePicture,
 } from "../controller/user.controller.ts";
 import { verifyJWT } from "../middlewares/auth.middleware.ts";
+import { upload } from "../middlewares/multer.ts";
 
 const router = Router();
 
@@ -20,6 +22,11 @@ router.use(verifyJWT);
 
 router.get("/logout", logout);
 router.get("/me", getCurrentUserDetails);
+router.put(
+  "/profile-picture",
+  upload.single("profile-picture"),
+  updateUserProfilePicture
+);
 router.get("/:id", getUserDetails);
 
 export default router;

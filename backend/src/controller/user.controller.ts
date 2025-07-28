@@ -219,6 +219,36 @@ const getUserDetails = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, "Successfuly fetched user using userId", user));
 });
 
+const updateUserProfilePicture = asyncHandler(
+  async (req: Request, res: Response) => {
+    const profilePicture = req.file;
+
+    if (!profilePicture) {
+      throw new ApiError(
+        500,
+        "Something went wrong while uploading profile picure"
+      );
+    }
+
+    const user = await User.findById(req.user?._id).select(
+      "-password -refreshToken"
+    );
+
+    if (!user) {
+      throw new ApiError(404, "Could not find user");
+    }
+
+    user.profilePicture = profilePicture.path;
+    user.save();
+
+    res
+      .status(201)
+      .json(
+        new ApiResponse(201, "User profile picture updated successfuly", user)
+      );
+  }
+);
+
 export {
   signup,
   signin,
@@ -226,4 +256,5 @@ export {
   getCurrentUserDetails,
   refreshAccessToken,
   getUserDetails,
+  updateUserProfilePicture,
 };
