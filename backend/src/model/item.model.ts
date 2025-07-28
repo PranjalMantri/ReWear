@@ -1,59 +1,22 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
+import {
+  CategoryEnum,
+  GenderEnum,
+  SizeEnum,
+  ConditionEnum,
+  ListingTypeEnum,
+  ItemStatusEnum,
+  ItemInputSchema,
+} from "../../../common/schema/item.schema.ts";
+import { z } from "zod";
 
-enum Category {
-  shirt = "shirt",
-  tshirt = "tshirt",
-  pant = "pant",
-  jacket = "jacket",
-  dress = "dress",
-  accessories = "accessories",
-  footwear = "footwear",
+type ItemInput = z.infer<typeof ItemInputSchema>;
+
+interface ItemDocument extends ItemInput, Document {
+  _id: mongoose.Schema.Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
 }
-
-enum Gender {
-  male = "male",
-  female = "female",
-  unisex = "unisex",
-}
-
-enum Size {
-  small = "small",
-  medium = "medium",
-  large = "large",
-  xlarge = "xlarge",
-}
-
-enum Condition {
-  newWithTags = "new_with_tags",
-  newWithoutTags = "new_without_tags",
-  likeNew = "like_new",
-  used = "used",
-  gentlyUsed = "gently_used",
-  good = "good",
-  fair = "fair",
-  poor = "poor",
-}
-
-enum ListingType {
-  swap = "swap",
-  redeem = "redeem",
-  giveAway = "give_away",
-}
-
-enum ItemStatus {
-  active = "active",
-  inactive = "inactive",
-  sold = "sold",
-}
-
-interface ItemInput {
-  userId: mongoose.Schema.Types.ObjectId;
-  title: string;
-  description: string;
-  category: Category;
-}
-
-interface ItemDocument extends ItemInput, Document {}
 
 const itemSchema = new Schema(
   {
@@ -75,21 +38,21 @@ const itemSchema = new Schema(
     },
     category: {
       type: String,
-      enum: Object.values(Category),
+      enum: Object.values(CategoryEnum),
       required: true,
     },
     gender: {
       type: String,
-      enum: Object.values(Gender),
+      enum: Object.values(GenderEnum),
     },
     size: {
       type: String,
-      enum: Object.values(Size),
+      enum: Object.values(SizeEnum),
       required: true,
     },
     condition: {
       type: String,
-      enum: Object.values(Condition),
+      enum: Object.values(ConditionEnum),
       required: true,
     },
     tags: {
@@ -107,12 +70,12 @@ const itemSchema = new Schema(
     },
     listingType: {
       type: String,
-      enum: Object.values(ListingType),
+      enum: Object.values(ListingTypeEnum),
       required: true,
     },
     status: {
       type: String,
-      enum: Object.values(ItemStatus),
+      enum: Object.values(ItemStatusEnum),
       default: "active",
     },
     color: {
@@ -127,8 +90,8 @@ const itemSchema = new Schema(
 
 itemSchema.pre("save", function (next) {
   if (
-    this.listingType === ListingType.swap ||
-    this.listingType === ListingType.giveAway
+    this.listingType === ListingTypeEnum.def.entries.swap ||
+    this.listingType === ListingTypeEnum.def.entries.giveaway
   ) {
     this.price = 0;
   }
