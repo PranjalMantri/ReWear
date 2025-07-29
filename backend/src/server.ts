@@ -13,10 +13,12 @@ const port = process.env.PORT || 3000;
 
 import userRouter from "./routes/user.router.ts";
 import itemRouter from "./routes/item.router.ts";
+import swapRouter from "./routes/swap.routes.ts";
 import errorHandler from "./middlewares/errorHandler.ts";
 
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/items", itemRouter);
+app.use("/api/v1/swap", swapRouter);
 app.use(errorHandler);
 
 app.listen(port, async () => {
