@@ -72,6 +72,10 @@ const getAllItems = asyncHandler(async (req: Request, res: Response) => {
   const page = Number.parseInt(req.query.page as string) || 1;
   const limit = Number.parseInt(req.query.limit as string) || 10;
 
+  if (page < 1 || limit < 1) {
+    throw new ApiError(400, "Invalid page or limit");
+  }
+
   const skip = (page - 1) * limit;
 
   const { category, condition, size, gender, search, tags } = req.query;
@@ -81,9 +85,9 @@ const getAllItems = asyncHandler(async (req: Request, res: Response) => {
   };
 
   if (category) filters.category = category;
-  if (category) filters.condition = condition;
-  if (category) filters.size = size;
-  if (category) filters.gender = gender;
+  if (condition) filters.condition = condition;
+  if (size) filters.size = size;
+  if (gender) filters.gender = gender;
 
   if (tags) {
     const tagsArray = Array.isArray(tags)
@@ -99,6 +103,7 @@ const getAllItems = asyncHandler(async (req: Request, res: Response) => {
   if (search) {
     const orConditions: any = [{ name: { $regex: search, $options: "i" } }];
 
+    // Only include search-based tag matching if tags weren't already filtered
     if (!tags) {
       orConditions.push({ tags: { $in: [search.toString()] } });
     }
@@ -106,10 +111,27 @@ const getAllItems = asyncHandler(async (req: Request, res: Response) => {
     filters.$or = orConditions;
   }
 
-  const items = await Item.find().skip(skip).limit(limit);
+  const items = await Item.find(filters)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
 
   const totalItems = await Item.countDocuments(filters);
   const totalPages = Math.ceil(totalItems / limit);
+
+  if (totalItems === 0) {
+    return res.status(200).json(
+      new ApiResponse(200, "No items found", {
+        items: [],
+        pagination: {
+          totalItems: 0,
+          totalPages: 0,
+          currentPage: page,
+          limit,
+        },
+      })
+    );
+  }
 
   const itemResponse = {
     items,
