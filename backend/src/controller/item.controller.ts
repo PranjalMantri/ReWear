@@ -231,4 +231,49 @@ const updateItem = asyncHandler(async (req: Request, res: Response) => {
   res.status(201).json(new ApiResponse(201, "Updated item successfuly", item));
 });
 
-export { createItem, getAllItems, getItemById, updateItem };
+const deleteItem = asyncHandler(async (req: Request, res: Response) => {
+  const itemId = req.params.itemId;
+
+  if (!req?.user?._id) {
+    throw new ApiError(401, "Unauthorized request");
+  }
+
+  const userId = new mongoose.Types.ObjectId(req.user._id);
+
+  if (!userId) {
+    throw new ApiError(401, "Unauthorized request");
+  }
+
+  if (!itemId) {
+    throw new ApiError(404, "Invalid item id");
+  }
+
+  const existingItem = await Item.findOne({
+    _id: itemId,
+    status: "active",
+  });
+
+  if (!existingItem) {
+    throw new ApiError(500, "Could not find an item");
+  }
+
+  if (!existingItem.userId.equals(userId)) {
+    throw new ApiError(404, "User is not permitted to delete the item");
+  }
+
+  const deletedItem = await Item.findByIdAndDelete(existingItem._id);
+
+  if (!deletedItem) {
+    throw new ApiError(500, "Something went wrong while deleting an item");
+  }
+
+  for (const url of existingItem.images) {
+    await deleteImage(url);
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, "Deleted item successfuly", deletedItem));
+});
+
+export { createItem, getAllItems, getItemById, updateItem, deleteItem };

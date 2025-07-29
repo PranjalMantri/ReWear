@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createItem,
+  deleteItem,
   getAllItems,
   getItemById,
   updateItem,
@@ -16,5 +17,6 @@ router.post("/", upload.array("images", 5), createItem);
 router.get("/", getAllItems);
 router.get("/:itemId", getItemById);
 router.put("/:itemId", upload.array("images", 5), updateItem);
+router.delete("/:itemId", deleteItem);
 
 export default router;
