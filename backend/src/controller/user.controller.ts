@@ -14,6 +14,7 @@ import {
   signupSchema,
 } from "../../../common/schema/user.schema.ts";
 import { UserPayload } from "../types/express/index.js";
+import Item from "../model/item.model.ts";
 
 const cookieOptions = {
   httpOnly: true,
@@ -250,6 +251,20 @@ const updateUserProfilePicture = asyncHandler(
   }
 );
 
+const getUserItems = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?._id;
+
+  if (!userId) {
+    throw new ApiError(401, "Unauthorized request");
+  }
+
+  const userItems = await Item.find({ userId });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, "Succesfuly fetched all user items", userItems));
+});
+
 export {
   signup,
   signin,
@@ -258,4 +273,5 @@ export {
   refreshAccessToken,
   getUserDetails,
   updateUserProfilePicture,
+  getUserItems,
 };

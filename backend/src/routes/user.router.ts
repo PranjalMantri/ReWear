@@ -7,6 +7,7 @@ import {
   refreshAccessToken,
   getUserDetails,
   updateUserProfilePicture,
+  getUserItems,
 } from "../controller/user.controller.ts";
 import { verifyJWT } from "../middlewares/auth.middleware.ts";
 import { upload } from "../middlewares/multer.ts";
@@ -22,6 +23,7 @@ router.use(verifyJWT);
 
 router.get("/logout", logout);
 router.get("/me", getCurrentUserDetails);
+router.get("/me/items", getUserItems);
 router.put(
   "/profile-picture",
   upload.single("profile-picture"),
