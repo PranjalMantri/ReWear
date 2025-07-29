@@ -29,7 +29,7 @@ export const ListingTypeEnum = z.enum(["swap", "redeem", "giveaway"]);
 
 export const ItemStatusEnum = z.enum(["active", "inactive", "sold"]);
 
-export const ItemInputSchema = z.object({
+export const itemInputSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   description: z.string().min(3, "Description must be at least 3 characters"),
   category: CategoryEnum,
@@ -48,4 +48,18 @@ export const ItemInputSchema = z.object({
   status: ItemStatusEnum.default("active"),
   color: z.string().optional(),
   brand: z.string().optional(),
+  images: z.array(z.string()).optional().default([]),
+});
+
+export const itemUpdateSchema = z.object({
+  description: z.string().min(3, "Description must be at least 3 characters"),
+  size: SizeEnum,
+  condition: ConditionEnum,
+  price: z.preprocess(
+    (val) => (typeof val === "string" ? Number(val) : val),
+    z
+      .number()
+      .min(0, "Price must be zero or more")
+      .refine((val) => !isNaN(val), "Price must be a number")
+  ),
 });
