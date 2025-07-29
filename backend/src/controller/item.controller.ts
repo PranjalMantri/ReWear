@@ -1,13 +1,25 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../util/asyncHandler.ts";
-import { ItemInputSchema } from "../../../common/schema/item.schema.ts";
+import {
+  itemInputSchema,
+  itemUpdateSchema,
+} from "../../../common/schema/item.schema.ts";
 import ApiError from "../util/ApiError.ts";
 import Item from "../model/item.model.ts";
 import ApiResponse from "../util/ApiResponse.ts";
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
+import { deleteImage } from "../util/deleteImage.ts";
+import User from "../model/user.model.ts";
+
+type UploadedCloudinaryFile = {
+  path: string;
+  filename: string;
+  [key: string]: any;
+};
 
 const createItem = asyncHandler(async (req: Request, res: Response) => {
-  const images = req.files as Express.Multer.File[] | undefined;
+  const images = req.files as UploadedCloudinaryFile[] | undefined;
+  console.log(images);
   const data = {
     ...req.body,
     tags: req.body.tags
@@ -27,7 +39,7 @@ const createItem = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(400, "You can upload a maximum of 5 images");
   }
 
-  const validatedData = ItemInputSchema.safeParse(data);
+  const validatedData = itemInputSchema.safeParse(data);
 
   if (!validatedData.success) {
     throw new ApiError(
@@ -37,7 +49,7 @@ const createItem = asyncHandler(async (req: Request, res: Response) => {
     );
   }
 
-  const imageUrls = images.map((image) => image.path);
+  const imageUrls = images.map((image: UploadedCloudinaryFile) => image.path);
 
   const dbdata = {
     userId: req?.user?._id,
@@ -132,4 +144,91 @@ const getItemById = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, "Successfuly fetched item using ID", item));
 });
 
-export { createItem, getAllItems, getItemById };
+const updateItem = asyncHandler(async (req: Request, res: Response) => {
+  const itemId = req.params.itemId;
+  const validatedData = itemUpdateSchema.safeParse(req.body);
+
+  if (!req?.user?._id) {
+    throw new ApiError(401, "Unauthorized request");
+  }
+
+  const userId = new mongoose.Types.ObjectId(req.user._id);
+
+  if (!userId) {
+    throw new ApiError(401, "Unauthorized request");
+  }
+
+  if (!itemId) {
+    throw new ApiError(404, "Invalid item id");
+  }
+
+  const existingItem = await Item.findById(itemId);
+
+  if (!existingItem) {
+    throw new ApiError(500, "Something went wrong while fetching the item");
+  }
+
+  if (!existingItem.userId.equals(userId)) {
+    throw new ApiError(
+      404,
+      "User does not have the permission to update the item"
+    );
+  }
+
+  if (!validatedData.success) {
+    throw new ApiError(
+      400,
+      "Invalid data",
+      validatedData.error.flatten().fieldErrors
+    );
+  }
+
+  // get the old images that user wants to keep from frontend
+  // get the new images that user uploaded
+  // get their urls and create a combined array of old and new images
+  // store this in the db
+  // get the deleted images url and actually delete them from cloudinary
+
+  const keepImages: string[] = req.body.keepImages
+    ? Array.isArray(req.body.keepImages)
+      ? req.body.keepImages
+      : [req.body.keepImages]
+    : [];
+
+  const newImages = (req.files as UploadedCloudinaryFile[] | undefined) || [];
+  const uploadedImages = newImages.map(
+    (image: UploadedCloudinaryFile) => image.path
+  );
+
+  const finalImageList = [...keepImages, ...uploadedImages];
+
+  if (finalImageList.length > 5) {
+    throw new ApiError(400, "Max 5 images are allowed per item");
+  }
+
+  const removedImages = existingItem.images.filter(
+    (img: string) => !keepImages.includes(img)
+  );
+
+  for (const url of removedImages) {
+    await deleteImage(url);
+  }
+
+  const item = await Item.findByIdAndUpdate(
+    itemId,
+    {
+      description: validatedData.data.description || existingItem.description,
+      condition: validatedData.data.condition || existingItem.condition,
+      size: validatedData.data.size || existingItem.size,
+      price: validatedData.data.price || existingItem.price,
+      images: [...finalImageList],
+    },
+    {
+      new: true,
+    }
+  );
+
+  res.status(201).json(new ApiResponse(201, "Updated item successfuly", item));
+});
+
+export { createItem, getAllItems, getItemById, updateItem };

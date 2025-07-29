@@ -6,17 +6,17 @@ import {
   ConditionEnum,
   ListingTypeEnum,
   ItemStatusEnum,
-  ItemInputSchema,
+  itemInputSchema,
 } from "../../../common/schema/item.schema.ts";
 import { z } from "zod";
 
-type ItemInput = z.infer<typeof ItemInputSchema>;
+type ItemInput = z.infer<typeof itemInputSchema>;
 
 interface ItemInputI extends ItemInput {
-  userId: mongoose.Schema.Types.ObjectId;
+  userId: mongoose.Types.ObjectId;
 }
 
-interface ItemDocument extends ItemInput, Document {
+interface ItemDocument extends ItemInputI, Document {
   _id: mongoose.Schema.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
