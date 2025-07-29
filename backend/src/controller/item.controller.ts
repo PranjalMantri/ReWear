@@ -4,6 +4,7 @@ import { ItemInputSchema } from "../../../common/schema/item.schema.ts";
 import ApiError from "../util/ApiError.ts";
 import Item from "../model/item.model.ts";
 import ApiResponse from "../util/ApiResponse.ts";
+import mongoose, { mongo } from "mongoose";
 
 const createItem = asyncHandler(async (req: Request, res: Response) => {
   const images = req.files as Express.Multer.File[] | undefined;
@@ -113,4 +114,22 @@ const getAllItems = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, "Successfuly fetched items", itemResponse));
 });
 
-export { createItem, getAllItems };
+const getItemById = asyncHandler(async (req: Request, res: Response) => {
+  const itemId = req.params.itemId;
+
+  if (!itemId) {
+    throw new ApiError(404, "Invalid item id");
+  }
+
+  const item = await Item.findById(itemId);
+
+  if (!item) {
+    throw new ApiError(500, "Something went wrong while fetching the item");
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, "Successfuly fetched item using ID", item));
+});
+
+export { createItem, getAllItems, getItemById };
