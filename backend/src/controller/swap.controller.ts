@@ -85,4 +85,57 @@ const getOutgoingSwaps = asyncHandler(async (req: Request, res: Response) => {
     );
 });
 
-export { proposeSwap, getIncomingSwaps, getOutgoingSwaps };
+const getAllSwaps = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?._id;
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(404, "Invalid user id");
+  }
+
+  const swaps = await Swap.find({
+    $or: [{ proposer: userId }, { receiver: userId }],
+  })
+    .populate("receiver", "name email")
+    .populate("proposer", "name email")
+    .populate("receiverItemId")
+    .populate("proposerItemId");
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, "Successfuly fetched all the swaps for user", swaps)
+    );
+});
+
+const getSwapById = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?._id;
+  const { swapId } = req.params;
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(404, "Invalid user id");
+  }
+
+  if (!swapId) {
+    throw new ApiError(404, "Swap Id is required");
+  }
+
+  const swap = await Swap.findById(swapId);
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, "Successfuly fetched all the requested swap", swap)
+    );
+});
+
+export {
+  proposeSwap,
+  getIncomingSwaps,
+  getOutgoingSwaps,
+  getAllSwaps,
+  getSwapById,
+};
