@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  acceptSwap,
   getAllSwaps,
   getIncomingSwaps,
   getOutgoingSwaps,
@@ -13,9 +14,10 @@ const router = Router();
 router.use(verifyJWT);
 
 router.get("/", getAllSwaps);
-router.get("/propose", proposeSwap);
+router.post("/propose", proposeSwap);
 router.get("/incoming", getIncomingSwaps);
 router.get("/outgoing", getOutgoingSwaps);
 router.get("/:swapId", getSwapById);
+router.put("/:swapId/accept", acceptSwap);
 
 export default router;

@@ -123,7 +123,13 @@ const getSwapById = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(404, "Swap Id is required");
   }
 
-  const swap = await Swap.findById(swapId);
+  const swap = await Swap.findById(swapId)
+    .populate("proposer", "name email")
+    .populate("receiver", "name email")
+    .populate("proposerItemId")
+    .populate("receiverItemId");
+
+  if (!swap) throw new ApiError(404, "Swap not found");
 
   res
     .status(200)
@@ -132,10 +138,50 @@ const getSwapById = asyncHandler(async (req: Request, res: Response) => {
     );
 });
 
+const acceptSwap = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?._id;
+  const { swapId } = req.params;
+
+  if (!userId) {
+    throw new ApiError(404, "Invalid user id");
+  }
+
+  if (!swapId) {
+    throw new ApiError(404, "Swap Id is required");
+  }
+
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "Invalid user");
+
+  const swap = await Swap.findById(swapId);
+
+  if (!swap) {
+    throw new ApiError(404, "Could not find a swap with given id");
+  }
+
+  if (!swap) throw new ApiError(404, "Swap not found");
+
+  if (swap.receiver.toString() !== userId.toString()) {
+    throw new ApiError(403, "You are not authorized to accept this swap");
+  }
+
+  if (swap.status !== "pending") {
+    throw new ApiError(400, `This swap is already ${swap.status}`);
+  }
+
+  swap.status = "accepted";
+  await swap.save();
+
+  res
+    .status(201)
+    .json(new ApiResponse(201, "Successfuly accepted the swap proposal", swap));
+});
+
 export {
   proposeSwap,
   getIncomingSwaps,
   getOutgoingSwaps,
   getAllSwaps,
   getSwapById,
+  acceptSwap,
 };
