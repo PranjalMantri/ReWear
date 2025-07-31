@@ -7,6 +7,8 @@ import {
   getSwapById,
   proposeSwap,
   rejectSwap,
+  cancelSwap,
+  completeSwap,
 } from "../controller/swap.controller.ts";
 import { verifyJWT } from "../middlewares/auth.middleware.ts";
 
@@ -21,5 +23,7 @@ router.get("/outgoing", getOutgoingSwaps);
 router.get("/:swapId", getSwapById);
 router.put("/:swapId/accept", acceptSwap);
 router.put("/:swapId/reject", rejectSwap);
+router.put("/:swapId/cancel", cancelSwap);
+router.put("/:swapId/complete", completeSwap);
 
 export default router;

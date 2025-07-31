@@ -15,4 +15,6 @@ export const SwapInputSchema = z.object({
   receiveItemId: z.string().trim().min(1, "receiver item id is required"),
   status: SwapStatusEnum.default("pending"),
   message: z.string().optional(),
+  proposerCompleted: z.boolean().optional().default(false),
+  receiverCompleted: z.boolean().optional().default(false),
 });

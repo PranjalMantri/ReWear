@@ -43,6 +43,14 @@ const swapSchema = new Schema(
     message: {
       type: String,
     },
+    proposerCompleted: {
+      type: Boolean,
+      default: false,
+    },
+    receiverCompleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

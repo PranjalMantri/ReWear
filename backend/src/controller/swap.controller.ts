@@ -1,7 +1,4 @@
-import {
-  SwapInputSchema,
-  SwapStatusEnum,
-} from "../../../common/schema/swap.schema.ts";
+import { SwapInputSchema } from "../../../common/schema/swap.schema.ts";
 import Swap from "../model/swaps.model.ts";
 import User from "../model/user.model.ts";
 import ApiError from "../util/ApiError.ts";
@@ -208,6 +205,92 @@ const rejectSwap = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(201, "Successfuly rejected the swap proposal", swap));
 });
 
+const cancelSwap = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?._id;
+  const { swapId } = req.params;
+
+  if (!userId) {
+    throw new ApiError(404, "Invalid user id");
+  }
+
+  if (!swapId) {
+    throw new ApiError(404, "Swap Id is required");
+  }
+
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "Invalid user");
+
+  const swap = await Swap.findById(swapId);
+
+  if (!swap) throw new ApiError(404, "Swap not found");
+
+  if (swap.proposer.toString() !== userId.toString()) {
+    throw new ApiError(403, "You are not authorized to reject this swap");
+  }
+
+  if (swap.status !== "pending") {
+    throw new ApiError(400, `This swap is already ${swap.status}`);
+  }
+
+  swap.status = "cancelled";
+  await swap.save();
+
+  res
+    .status(201)
+    .json(
+      new ApiResponse(201, "Successfuly cancelled the swap proposal", swap)
+    );
+});
+
+const completeSwap = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?._id;
+  const { swapId } = req.params;
+
+  if (!userId) {
+    throw new ApiError(404, "Invalid user id");
+  }
+
+  if (!swapId) {
+    throw new ApiError(404, "Swap Id is required");
+  }
+
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "Invalid user");
+
+  const swap = await Swap.findById(swapId);
+
+  if (!swap) throw new ApiError(404, "Swap not found");
+
+  const isProposer = swap.proposer.toString() === userId.toString();
+  const isReceiver = swap.receiver.toString() === userId.toString();
+
+  if (!isProposer && !isReceiver) {
+    throw new ApiError(403, "You are not authorized to complete this swap");
+  }
+
+  if (isProposer) {
+    if (swap.proposerCompleted) {
+      throw new ApiError(400, "You have already marked this as completed");
+    }
+    swap.proposerCompleted = true;
+  }
+
+  if (isReceiver) {
+    if (swap.receiverCompleted) {
+      throw new ApiError(400, "You have already marked this as completed");
+    }
+    swap.receiverCompleted = true;
+  }
+
+  if (swap.proposerCompleted && swap.receiverCompleted) {
+    swap.status = "completed";
+  }
+
+  await swap.save();
+
+  res.status(200).json(new ApiResponse(200, "Swap updated successfully", swap));
+});
+
 export {
   proposeSwap,
   getIncomingSwaps,
@@ -216,4 +299,6 @@ export {
   getSwapById,
   acceptSwap,
   rejectSwap,
+  cancelSwap,
+  completeSwap,
 };
