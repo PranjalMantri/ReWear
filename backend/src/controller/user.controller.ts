@@ -265,6 +265,22 @@ const getUserItems = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, "Succesfuly fetched all user items", userItems));
 });
 
+const getUserPoints = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?._id;
+
+  if (!userId) throw new ApiError(401, "Unauthorized request");
+
+  const user = await User.findById(userId, "points");
+
+  if (!user) throw new ApiError(404, "Invalid user");
+
+  res.status(200).json(
+    new ApiResponse(200, "Succesfuly fetched user points", {
+      points: user.points,
+    })
+  );
+});
+
 export {
   signup,
   signin,
@@ -274,4 +290,5 @@ export {
   getUserDetails,
   updateUserProfilePicture,
   getUserItems,
+  getUserPoints,
 };
