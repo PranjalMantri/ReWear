@@ -9,6 +9,7 @@ import {
   updateUserProfilePicture,
   getUserItems,
   getUserPoints,
+  getUserPointsHistory,
 } from "../controller/user.controller.ts";
 import { verifyJWT } from "../middlewares/auth.middleware.ts";
 import { upload } from "../middlewares/multer.ts";
@@ -26,6 +27,7 @@ router.get("/logout", logout);
 router.get("/me", getCurrentUserDetails);
 router.get("/me/items", getUserItems);
 router.get("/me/points", getUserPoints);
+router.get("/me/points/history", getUserPointsHistory);
 router.put(
   "/profile-picture",
   upload.single("profile-picture"),

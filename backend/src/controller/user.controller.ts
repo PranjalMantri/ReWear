@@ -15,6 +15,7 @@ import {
 } from "../../../common/schema/user.schema.ts";
 import { UserPayload } from "../types/express/index.js";
 import Item from "../model/item.model.ts";
+import Points from "../model/points.model.ts";
 
 const cookieOptions = {
   httpOnly: true,
@@ -281,6 +282,26 @@ const getUserPoints = asyncHandler(async (req: Request, res: Response) => {
   );
 });
 
+const getUserPointsHistory = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+
+    if (!userId) throw new ApiError(401, "Unauthorized request");
+
+    const user = await User.findById(userId);
+
+    if (!user) throw new ApiError(404, "Invalid user");
+
+    const pointsHistory = await Points.find({ userId });
+
+    res.status(200).json(
+      new ApiResponse(200, "Succesfuly fetched user points historys", {
+        pointsHistory,
+      })
+    );
+  }
+);
+
 export {
   signup,
   signin,
@@ -291,4 +312,5 @@ export {
   updateUserProfilePicture,
   getUserItems,
   getUserPoints,
+  getUserPointsHistory,
 };
