@@ -152,7 +152,7 @@ const logout = asyncHandler(async (req: Request, res: Response) => {
     .status(200)
     .clearCookie("accessToken")
     .clearCookie("refreshToken")
-    .json(new ApiResponse(200, "Logged out user successfuly", {}));
+    .json(new ApiResponse(200, "Logged out user Successfully", {}));
 });
 
 const getCurrentUserDetails = asyncHandler(
@@ -163,7 +163,7 @@ const getCurrentUserDetails = asyncHandler(
 
     res
       .status(200)
-      .json(new ApiResponse(200, "Fetched user details successfuly", user));
+      .json(new ApiResponse(200, "Fetched user details Successfully", user));
   }
 );
 
@@ -204,7 +204,7 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
     .cookie("accessToken", accessToken, cookieOptions)
     .cookie("refreshToken", refreshToken, cookieOptions)
     .json(
-      new ApiResponse(200, "New tokens generated successfuly", refreshToken)
+      new ApiResponse(200, "New tokens generated Successfully", refreshToken)
     );
 });
 
@@ -219,7 +219,7 @@ const getUserDetails = asyncHandler(async (req: Request, res: Response) => {
 
   res
     .status(200)
-    .json(new ApiResponse(200, "Successfuly fetched user using userId", user));
+    .json(new ApiResponse(200, "Successfully fetched user using userId", user));
 });
 
 const updateUserProfilePicture = asyncHandler(
@@ -247,7 +247,7 @@ const updateUserProfilePicture = asyncHandler(
     res
       .status(201)
       .json(
-        new ApiResponse(201, "User profile picture updated successfuly", user)
+        new ApiResponse(201, "User profile picture updated Successfully", user)
       );
   }
 );

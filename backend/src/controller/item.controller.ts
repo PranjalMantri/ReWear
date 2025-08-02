@@ -65,7 +65,7 @@ const createItem = asyncHandler(async (req: Request, res: Response) => {
 
   res
     .status(201)
-    .json(new ApiResponse(201, "Successfuly uploaded an item", item));
+    .json(new ApiResponse(201, "Successfully uploaded an item", item));
 });
 
 const getAllItems = asyncHandler(async (req: Request, res: Response) => {
@@ -145,7 +145,7 @@ const getAllItems = asyncHandler(async (req: Request, res: Response) => {
 
   res
     .status(200)
-    .json(new ApiResponse(200, "Successfuly fetched items", itemResponse));
+    .json(new ApiResponse(200, "Successfully fetched items", itemResponse));
 });
 
 const getItemById = asyncHandler(async (req: Request, res: Response) => {
@@ -163,7 +163,7 @@ const getItemById = asyncHandler(async (req: Request, res: Response) => {
 
   res
     .status(200)
-    .json(new ApiResponse(200, "Successfuly fetched item using ID", item));
+    .json(new ApiResponse(200, "Successfully fetched item using ID", item));
 });
 
 const updateItem = asyncHandler(async (req: Request, res: Response) => {
@@ -250,7 +250,7 @@ const updateItem = asyncHandler(async (req: Request, res: Response) => {
     }
   );
 
-  res.status(201).json(new ApiResponse(201, "Updated item successfuly", item));
+  res.status(201).json(new ApiResponse(201, "Updated item Successfully", item));
 });
 
 const deleteItem = asyncHandler(async (req: Request, res: Response) => {
@@ -295,7 +295,7 @@ const deleteItem = asyncHandler(async (req: Request, res: Response) => {
 
   res
     .status(200)
-    .json(new ApiResponse(200, "Deleted item successfuly", deletedItem));
+    .json(new ApiResponse(200, "Deleted item Successfully", deletedItem));
 });
 
 export { createItem, getAllItems, getItemById, updateItem, deleteItem };

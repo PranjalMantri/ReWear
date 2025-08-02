@@ -29,7 +29,7 @@ const proposeSwap = asyncHandler(async (req: Request, res: Response) => {
 
   res
     .status(201)
-    .json(new ApiResponse(201, "Successfuly proposed a swap", swap));
+    .json(new ApiResponse(201, "Successfully proposed a swap", swap));
 });
 
 const getIncomingSwaps = asyncHandler(async (req: Request, res: Response) => {
@@ -51,7 +51,7 @@ const getIncomingSwaps = asyncHandler(async (req: Request, res: Response) => {
     .json(
       new ApiResponse(
         200,
-        "Successfuly fetched all the incoming swaps for user",
+        "Successfully fetched all the incoming swaps for user",
         incomingSwaps
       )
     );
@@ -76,7 +76,7 @@ const getOutgoingSwaps = asyncHandler(async (req: Request, res: Response) => {
     .json(
       new ApiResponse(
         200,
-        "Successfuly fetched all the outgoing swaps for user",
+        "Successfully fetched all the outgoing swaps for user",
         outgoingSwaps
       )
     );
@@ -102,7 +102,7 @@ const getAllSwaps = asyncHandler(async (req: Request, res: Response) => {
   res
     .status(200)
     .json(
-      new ApiResponse(200, "Successfuly fetched all the swaps for user", swaps)
+      new ApiResponse(200, "Successfully fetched all the swaps for user", swaps)
     );
 });
 
@@ -131,7 +131,7 @@ const getSwapById = asyncHandler(async (req: Request, res: Response) => {
   res
     .status(200)
     .json(
-      new ApiResponse(200, "Successfuly fetched all the requested swap", swap)
+      new ApiResponse(200, "Successfully fetched all the requested swap", swap)
     );
 });
 
@@ -167,7 +167,9 @@ const acceptSwap = asyncHandler(async (req: Request, res: Response) => {
 
   res
     .status(201)
-    .json(new ApiResponse(201, "Successfuly accepted the swap proposal", swap));
+    .json(
+      new ApiResponse(201, "Successfully accepted the swap proposal", swap)
+    );
 });
 
 const rejectSwap = asyncHandler(async (req: Request, res: Response) => {
@@ -202,7 +204,9 @@ const rejectSwap = asyncHandler(async (req: Request, res: Response) => {
 
   res
     .status(201)
-    .json(new ApiResponse(201, "Successfuly rejected the swap proposal", swap));
+    .json(
+      new ApiResponse(201, "Successfully rejected the swap proposal", swap)
+    );
 });
 
 const cancelSwap = asyncHandler(async (req: Request, res: Response) => {
@@ -238,7 +242,7 @@ const cancelSwap = asyncHandler(async (req: Request, res: Response) => {
   res
     .status(201)
     .json(
-      new ApiResponse(201, "Successfuly cancelled the swap proposal", swap)
+      new ApiResponse(201, "Successfully cancelled the swap proposal", swap)
     );
 });
 
