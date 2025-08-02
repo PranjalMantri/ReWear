@@ -7,7 +7,11 @@ import {
 
 type RedemptionInput = z.infer<typeof RedemptionInputSchema>;
 
-interface RedemptionDocument extends RedemptionInput, Document {}
+interface RedemptionDocument extends RedemptionInput, Document {
+  _id: mongoose.Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const redemptionSchema = new Schema(
   {

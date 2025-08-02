@@ -15,5 +15,5 @@ export const RedemptionInputSchema = z.object({
   ),
   status: RedemptionStatusEnum,
   confirmedBySender: z.boolean().optional().default(false),
-  confirmedByReceiever: z.boolean().optional().default(false),
+  confirmedByReceiver: z.boolean().optional().default(false),
 });
