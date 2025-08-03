@@ -78,6 +78,13 @@ const createItem = asyncHandler(async (req: Request, res: Response) => {
       );
 
     rewardGiven = true;
+
+    await Notification.create({
+      receiverId: userId,
+      type: "item_listed",
+      message:
+        "Congratulations on your first item listing! Here are some points to celebrate that sustainibility.",
+    });
   }
 
   const item = await Item.create(dbdata);
@@ -85,13 +92,6 @@ const createItem = asyncHandler(async (req: Request, res: Response) => {
   if (!item) {
     throw new ApiError(500, "Something went wrong while listing an item");
   }
-
-  await Notification.create({
-    receiverId: userId,
-    type: "item_listed",
-    message:
-      "Congratulations on your first item listing! Here are some points to celebrate that sustainibility.",
-  });
 
   res.status(201).json(
     new ApiResponse(201, "Successfully uploaded an item", {
@@ -203,16 +203,6 @@ const updateItem = asyncHandler(async (req: Request, res: Response) => {
   const itemId = req.params.itemId;
   const validatedData = itemUpdateSchema.safeParse(req.body);
 
-  if (!req?.user?._id) {
-    throw new ApiError(401, "Unauthorized request");
-  }
-
-  const userId = new mongoose.Types.ObjectId(req.user._id);
-
-  if (!userId) {
-    throw new ApiError(401, "Unauthorized request");
-  }
-
   if (!itemId) {
     throw new ApiError(404, "Invalid item id");
   }
@@ -223,7 +213,7 @@ const updateItem = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(500, "Something went wrong while fetching the item");
   }
 
-  if (!existingItem.userId.equals(userId)) {
+  if (!existingItem.userId.equals(req.user?._id)) {
     throw new ApiError(
       404,
       "User does not have the permission to update the item"
@@ -287,7 +277,7 @@ const updateItem = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const deleteItem = asyncHandler(async (req: Request, res: Response) => {
-  const itemId = req.params.itemId;
+  const { itemId } = req.params;
 
   if (!req?.user?._id) {
     throw new ApiError(401, "Unauthorized request");
@@ -312,11 +302,11 @@ const deleteItem = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(500, "Could not find an item");
   }
 
-  if (!existingItem.userId.equals(userId)) {
-    throw new ApiError(404, "User is not permitted to delete the item");
-  }
-
-  const deletedItem = await Item.findByIdAndDelete(existingItem._id);
+  const deletedItem = await Item.deleteOne({
+    _id: itemId,
+    userId,
+    status: "active",
+  });
 
   if (!deletedItem) {
     throw new ApiError(500, "Something went wrong while deleting an item");
