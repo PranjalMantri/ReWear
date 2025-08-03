@@ -11,6 +11,7 @@ import mongoose from "mongoose";
 import { deleteImage } from "../util/deleteImage.ts";
 import User from "../model/user.model.ts";
 import Points from "../model/points.model.ts";
+import Notification from "../model/notification.model.ts";
 
 type UploadedCloudinaryFile = {
   path: string;
@@ -88,6 +89,13 @@ const createItem = asyncHandler(async (req: Request, res: Response) => {
   if (!item) {
     throw new ApiError(500, "Something went wrong while listing an item");
   }
+
+  await Notification.create({
+    receiverId: userId,
+    type: "item_listed",
+    message:
+      "Congratulations on your first item listing! Here are some points to celebrate that sustainibility.",
+  });
 
   res.status(201).json(
     new ApiResponse(201, "Successfully uploaded an item", {

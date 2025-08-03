@@ -1,4 +1,6 @@
 import { SwapInputSchema } from "../../../common/schema/swap.schema.ts";
+import Item from "../model/item.model.ts";
+import Notification from "../model/notification.model.ts";
 import Points from "../model/points.model.ts";
 import Swap from "../model/swaps.model.ts";
 import User from "../model/user.model.ts";
@@ -9,6 +11,10 @@ import { Request, Response } from "express";
 
 const proposeSwap = asyncHandler(async (req: Request, res: Response) => {
   const proposerId = req.user?._id;
+
+  const proposer = await User.findById(proposerId);
+  if (!proposer) throw new ApiError(400, "User does not exist");
+
   const validatedData = SwapInputSchema.safeParse({
     ...req.body,
     proposer: proposerId,
@@ -22,11 +28,21 @@ const proposeSwap = asyncHandler(async (req: Request, res: Response) => {
     );
   }
 
+  const proposedItem = await Item.findById(validatedData.data.proposedItemId);
+
+  if (!proposedItem) throw new ApiError(400, "Proposed item does not exist");
+
   if (validatedData.data.receiver === proposerId) {
     throw new ApiError(400, "Cannot swap items with yourself");
   }
 
   const swap = await Swap.create(validatedData.data);
+
+  await Notification.create({
+    receiverId: proposedItem.userId,
+    type: "swap_proposed",
+    message: `${proposer.fullname} proposed a swap for your item: - ${proposedItem.title}`,
+  });
 
   res
     .status(201)
@@ -151,9 +167,12 @@ const acceptSwap = asyncHandler(async (req: Request, res: Response) => {
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "Invalid user");
 
-  const swap = await Swap.findById(swapId);
-
+  const swap = await Swap.findById(swapId).populate("itemId");
   if (!swap) throw new ApiError(404, "Swap not found");
+
+  const proposer = await User.findById(swap.proposer);
+  if (!proposer)
+    throw new ApiError(400, "User that proposed the swap does not exist");
 
   if (swap.receiver.toString() !== userId.toString()) {
     throw new ApiError(403, "You are not authorized to accept this swap");
@@ -165,6 +184,17 @@ const acceptSwap = asyncHandler(async (req: Request, res: Response) => {
 
   swap.status = "accepted";
   await swap.save();
+
+  // the user that accepted the swap calls this endpoit,
+  // we send notification to the user who actually proposed the swap
+
+  await Notification.create({
+    receiverId: proposer._id,
+    type: "swap_accepted",
+    message: `${user.fullname} accepted your swap proposal for item: - ${
+      (swap.proposedItemId as any).title
+    }`,
+  });
 
   res
     .status(201)
@@ -189,8 +219,11 @@ const rejectSwap = asyncHandler(async (req: Request, res: Response) => {
   if (!user) throw new ApiError(404, "Invalid user");
 
   const swap = await Swap.findById(swapId);
-
   if (!swap) throw new ApiError(404, "Swap not found");
+
+  const proposer = await User.findById(swap.proposer);
+  if (!proposer)
+    throw new ApiError(400, "User that proposed the swap does not exist");
 
   if (swap.receiver.toString() !== userId.toString()) {
     throw new ApiError(403, "You are not authorized to reject this swap");
@@ -202,6 +235,14 @@ const rejectSwap = asyncHandler(async (req: Request, res: Response) => {
 
   swap.status = "rejected";
   await swap.save();
+
+  await Notification.create({
+    receiverId: proposer._id,
+    type: "swap_rejected",
+    message: `${user.fullname} rejected your swap proposal for item: - ${
+      (swap.proposedItemId as any).title
+    }`,
+  });
 
   res
     .status(201)
@@ -226,8 +267,11 @@ const cancelSwap = asyncHandler(async (req: Request, res: Response) => {
   if (!user) throw new ApiError(404, "Invalid user");
 
   const swap = await Swap.findById(swapId);
-
   if (!swap) throw new ApiError(404, "Swap not found");
+
+  const proposer = await User.findById(swap.proposer);
+  if (!proposer)
+    throw new ApiError(400, "User that proposed the swap does not exist");
 
   if (swap.proposer.toString() !== userId.toString()) {
     throw new ApiError(403, "You are not authorized to reject this swap");
@@ -239,6 +283,14 @@ const cancelSwap = asyncHandler(async (req: Request, res: Response) => {
 
   swap.status = "cancelled";
   await swap.save();
+
+  await Notification.create({
+    receiverId: user._id,
+    type: "swap_cancelled",
+    message: `${proposer.fullname} rejected your swap proposal for item: - ${
+      (swap.proposedItemId as any).title
+    }`,
+  });
 
   res
     .status(201)
@@ -264,6 +316,10 @@ const completeSwap = asyncHandler(async (req: Request, res: Response) => {
 
   const swap = await Swap.findById(swapId);
   if (!swap) throw new ApiError(404, "Swap not found");
+
+  const proposer = await User.findById(swap.proposer);
+  if (!proposer)
+    throw new ApiError(400, "User that proposed the swap does not exist");
 
   const isProposer = swap.proposer.toString() === userId.toString();
   const isReceiver = swap.receiver.toString() === userId.toString();
@@ -326,6 +382,18 @@ const completeSwap = asyncHandler(async (req: Request, res: Response) => {
   }
 
   await swap.save();
+
+  await Notification.create({
+    receiverId: user._id,
+    type: "swap_completed",
+    message: `Your swap with ${proposer.fullname} is successfully complete. You have also been awarded some points.`,
+  });
+
+  await Notification.create({
+    receiverId: proposer._id,
+    type: "swap_completed",
+    message: `Your swap with ${user.fullname} is successfuly complete. You have also been awarded some points`,
+  });
 
   res.status(200).json(
     new ApiResponse(200, "Swap updated successfully", {

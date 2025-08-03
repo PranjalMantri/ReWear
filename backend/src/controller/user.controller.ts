@@ -16,6 +16,7 @@ import {
 import { UserPayload } from "../types/express/index.js";
 import Item from "../model/item.model.ts";
 import Points from "../model/points.model.ts";
+import Notification from "../model/notification.model.ts";
 
 const cookieOptions = {
   httpOnly: true,
@@ -72,7 +73,6 @@ const signup = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(500, "Something went wrong while creating a user");
   }
 
-  let rewardGiven = false;
   const points = await Points.create({
     userId: user._id,
     type: "earned",
@@ -83,8 +83,6 @@ const signup = asyncHandler(async (req: Request, res: Response) => {
   if (!points) {
     throw new ApiError(500, "Failed to assign signup points");
   }
-
-  rewardGiven = true;
 
   const { accessToken, refreshToken } = await createTokens({
     userId: user._id,
@@ -105,6 +103,13 @@ const signup = asyncHandler(async (req: Request, res: Response) => {
     fullname: user.fullname,
     email: user.email,
   };
+
+  await Notification.create({
+    receiverId: user._id,
+    type: "points_awarded",
+    message:
+      "Welcome aboard! You've received a 20 point signup bonus to kickstart your journey.",
+  });
 
   res.status(201).json(
     new ApiResponse(201, "User registered succcessfuly", {
