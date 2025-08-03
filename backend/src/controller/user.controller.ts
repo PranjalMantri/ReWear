@@ -35,10 +35,6 @@ const createTokens = async (payload: jwt.JwtPayload) => {
     const accessToken = createAccessToken(payload);
     const refreshToken = createRefreshToken(payload);
 
-    user.refreshToken = refreshToken;
-
-    user?.save({ validateBeforeSave: true });
-
     return { accessToken, refreshToken };
   } catch (error) {
     throw new ApiError(
@@ -87,6 +83,10 @@ const signup = asyncHandler(async (req: Request, res: Response) => {
   const { accessToken, refreshToken } = await createTokens({
     userId: user._id,
   });
+
+  user.refreshToken = refreshToken;
+  user.points += points.amount;
+  await user.save({ validateBeforeSave: true });
 
   res.cookie("accessToken", accessToken, {
     ...cookieOptions,
@@ -166,10 +166,17 @@ const signin = asyncHandler(async (req: Request, res: Response) => {
 
   res
     .status(200)
-    .json(new ApiResponse(200, "User signup succcessfull", userResponse));
+    .json(new ApiResponse(200, "User signup succcessful", userResponse));
 });
 
 const logout = asyncHandler(async (req: Request, res: Response) => {
+  const user = await User.findById(req.user?._id);
+
+  if (user) {
+    user.refreshToken = null;
+    user.save({ validateBeforeSave: true });
+  }
+
   res
     .status(200)
     .clearCookie("accessToken")
@@ -225,9 +232,7 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
     .status(201)
     .cookie("accessToken", accessToken, cookieOptions)
     .cookie("refreshToken", refreshToken, cookieOptions)
-    .json(
-      new ApiResponse(200, "New tokens generated Successfully", refreshToken)
-    );
+    .json(new ApiResponse(200, "New tokens generated Successfully", {}));
 });
 
 const getUserDetails = asyncHandler(async (req: Request, res: Response) => {
@@ -277,9 +282,7 @@ const updateUserProfilePicture = asyncHandler(
 const getUserItems = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?._id;
 
-  if (!userId) {
-    throw new ApiError(401, "Unauthorized request");
-  }
+  if (!userId) throw new ApiError(401, "Unauthorized request");
 
   const userItems = await Item.find({ userId });
 
@@ -311,7 +314,6 @@ const getUserPointsHistory = asyncHandler(
     if (!userId) throw new ApiError(401, "Unauthorized request");
 
     const user = await User.findById(userId);
-
     if (!user) throw new ApiError(404, "Invalid user");
 
     const pointsHistory = await Points.find({ userId });

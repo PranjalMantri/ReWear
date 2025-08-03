@@ -8,7 +8,7 @@ interface UserInput {
   profilePicture?: string;
   isAdmin: boolean;
   points: number;
-  refreshToken: string;
+  refreshToken?: string | null;
 }
 
 interface UserDocument extends UserInput, Document {
@@ -47,6 +47,7 @@ const userSchema = new Schema(
     },
     refreshToken: {
       type: String,
+      default: null,
     },
   },
   { timestamps: true }
