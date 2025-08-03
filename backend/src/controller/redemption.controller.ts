@@ -26,7 +26,7 @@ const redeemItem = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(400, "You cannot redeem your own item");
   }
 
-  const itemRedemption = await Redemption.find({
+  const itemRedemption = await Redemption.findOne({
     itemId,
     status: { $ne: "cancelled" },
   });
@@ -63,6 +63,9 @@ const redeemItem = asyncHandler(async (req: Request, res: Response) => {
     message: `${user.fullname} has redeemed your item: - ${item.title}`,
   });
 
+  item.status = "inactive";
+  await item.save();
+
   res
     .status(201)
     .json(new ApiResponse(201, "Succesfuly redeemed the item", redemption));
@@ -74,10 +77,6 @@ const getAllRedemptions = asyncHandler(async (req: Request, res: Response) => {
   const redemptions = await Redemption.find({ userId })
     .populate("userId", "name email")
     .populate("itemId");
-
-  if (redemptions.length === 0) {
-    throw new ApiError(404, "User has no redemptions");
-  }
 
   res
     .status(200)
@@ -228,10 +227,22 @@ const cancelRedemption = asyncHandler(async (req: Request, res: Response) => {
   redemption.status = "cancelled";
   await redemption.save();
 
+  const poinstRefunded = await Points.create({
+    userId,
+    type: "spent",
+    amount: redemption.pointsUsed,
+  });
+
   await Notification.create({
     receiverId: sender._id,
     type: "redemption_cancelled",
     message: `${user.fullname} cancelled their redemption order`,
+  });
+
+  await Notification.create({
+    receiverId: user._id,
+    type: "redemption_cancelled",
+    message: `Your redemption is cancelled and points have been refunded`,
   });
 
   res
