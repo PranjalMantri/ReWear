@@ -72,6 +72,20 @@ const signup = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(500, "Something went wrong while creating a user");
   }
 
+  let rewardGiven = false;
+  const points = await Points.create({
+    userId: user._id,
+    type: "earned",
+    amount: 20,
+    meta: { reason: "registration" },
+  });
+
+  if (!points) {
+    throw new ApiError(500, "Failed to assign signup points");
+  }
+
+  rewardGiven = true;
+
   const { accessToken, refreshToken } = await createTokens({
     userId: user._id,
   });
@@ -92,9 +106,12 @@ const signup = asyncHandler(async (req: Request, res: Response) => {
     email: user.email,
   };
 
-  res
-    .status(201)
-    .json(new ApiResponse(201, "User registered succcessfuly", userResponse));
+  res.status(201).json(
+    new ApiResponse(201, "User registered succcessfuly", {
+      ...userResponse,
+      reward: { points },
+    })
+  );
 });
 
 const signin = asyncHandler(async (req: Request, res: Response) => {

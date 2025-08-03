@@ -1,4 +1,5 @@
 import { SwapInputSchema } from "../../../common/schema/swap.schema.ts";
+import Points from "../model/points.model.ts";
 import Swap from "../model/swaps.model.ts";
 import User from "../model/user.model.ts";
 import ApiError from "../util/ApiError.ts";
@@ -262,7 +263,6 @@ const completeSwap = asyncHandler(async (req: Request, res: Response) => {
   if (!user) throw new ApiError(404, "Invalid user");
 
   const swap = await Swap.findById(swapId);
-
   if (!swap) throw new ApiError(404, "Swap not found");
 
   const isProposer = swap.proposer.toString() === userId.toString();
@@ -286,13 +286,53 @@ const completeSwap = asyncHandler(async (req: Request, res: Response) => {
     swap.receiverCompleted = true;
   }
 
+  const rewards: any[] = [];
+
   if (swap.proposerCompleted && swap.receiverCompleted) {
     swap.status = "completed";
+
+    const proposerReward = await Points.create({
+      userId: swap.proposer,
+      type: "earned",
+      amount: 15,
+      meta: { reason: "swap" },
+    });
+
+    const receiverReward = await Points.create({
+      userId: swap.receiver,
+      type: "earned",
+      amount: 15,
+      meta: { reason: "swap" },
+    });
+
+    if (!proposerReward || !receiverReward) {
+      throw new ApiError(500, "Failed to assign swap rewards");
+    }
+
+    rewards.push(
+      {
+        userId: swap.proposer,
+        amount: proposerReward.amount,
+        reason: proposerReward.meta?.reason,
+        message: "Proposer earned 15 points for completing the swap",
+      },
+      {
+        userId: swap.receiver,
+        amount: receiverReward.amount,
+        reason: receiverReward.meta?.reason,
+        message: "Receiver earned 15 points for completing the swap",
+      }
+    );
   }
 
   await swap.save();
 
-  res.status(200).json(new ApiResponse(200, "Swap updated successfully", swap));
+  res.status(200).json(
+    new ApiResponse(200, "Swap updated successfully", {
+      swap,
+      rewards,
+    })
+  );
 });
 
 export {

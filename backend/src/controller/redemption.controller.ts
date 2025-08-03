@@ -4,6 +4,62 @@ import User from "../model/user.model.ts";
 import ApiError from "../util/ApiError.ts";
 import Redemption from "../model/redemption.model.ts";
 import ApiResponse from "../util/ApiResponse.ts";
+import Item from "../model/item.model.ts";
+import Points from "../model/points.model.ts";
+
+const redeemItem = asyncHandler(async (req: Request, res: Response) => {
+  const { itemId } = req.params;
+  const userId = req.user?._id;
+
+  if (!userId || !itemId) {
+    throw new ApiError(400, "User ID and Item ID are required");
+  }
+
+  const item = await Item.findById(itemId);
+  if (!item) throw new ApiError(404, "Item not found");
+
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "Invalid user");
+
+  if (item.userId.toString() === userId.toString()) {
+    throw new ApiError(400, "You cannot redeem your own item");
+  }
+
+  const itemRedemption = await Redemption.find({
+    itemId,
+    status: { $ne: "cancelled" },
+  });
+
+  if (itemRedemption) throw new ApiError(400, "Item has been already redeemed");
+
+  // check balance
+  if (user.points < item.price) {
+    throw new ApiError(
+      400,
+      "User does not have sufficient points to redeem the item"
+    );
+  }
+
+  const redemption = await Redemption.create({
+    userId,
+    itemId,
+    pointsUsed: item.price,
+  });
+
+  const pointsDeducted = await Points.create({
+    userId,
+    type: "spent",
+    amount: item.price,
+  });
+
+  if (!redemption || !pointsDeducted) {
+    throw new ApiError(500, "Failed to redeem item");
+  }
+
+  res
+    .status(201)
+    .json(new ApiResponse(201, "Succesfuly redeemed the item", redemption));
+});
 
 const getAllRedemptions = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?._id;
@@ -85,7 +141,7 @@ const markItemReceived = asyncHandler(async (req: Request, res: Response) => {
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "Invalid user id");
 
-  const redemption = await Redemption.findById(redemptionId);
+  const redemption = await Redemption.findById(redemptionId).populate("itemId");
   if (!redemption) throw new ApiError(404, "Redemption Id is required");
 
   if (!redemption.confirmedBySender) {
@@ -95,13 +151,40 @@ const markItemReceived = asyncHandler(async (req: Request, res: Response) => {
     );
   }
 
-  redemption.confirmedByReceiver = true;
-  redemption.status = "completed";
-  await redemption.save();
+  if (redemption.confirmedByReceiver) {
+    throw new ApiError(400, "Already marked as received");
+  }
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, "Redeemed item was received", redemption));
+  const senderId = (redemption.itemId as any).userId;
+
+  if (!senderId) {
+    throw new ApiError(500, "Could not determine sender of the item");
+  }
+
+  const updatedRedemption = await Redemption.findByIdAndUpdate(
+    redemptionId,
+    {
+      confirmedByReceiver: true,
+      status: "completed",
+    },
+    { new: true }
+  );
+
+  const pointsEarned = await Points.create({
+    userId: senderId,
+    type: "earned",
+    amount: redemption.pointsUsed,
+    meta: {
+      reason: "redemption",
+    },
+  });
+
+  res.status(200).json(
+    new ApiResponse(200, "Item marked as received. Sender rewarded 🎉", {
+      redemption: updatedRedemption,
+      reward: pointsEarned,
+    })
+  );
 });
 
 const cancelRedemption = asyncHandler(async (req: Request, res: Response) => {
@@ -140,4 +223,5 @@ export {
   markItemReceived,
   markItemShipped,
   cancelRedemption,
+  redeemItem,
 };

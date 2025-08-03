@@ -10,6 +10,7 @@ import ApiResponse from "../util/ApiResponse.ts";
 import mongoose from "mongoose";
 import { deleteImage } from "../util/deleteImage.ts";
 import User from "../model/user.model.ts";
+import Points from "../model/points.model.ts";
 
 type UploadedCloudinaryFile = {
   path: string;
@@ -19,7 +20,7 @@ type UploadedCloudinaryFile = {
 
 const createItem = asyncHandler(async (req: Request, res: Response) => {
   const images = req.files as UploadedCloudinaryFile[] | undefined;
-  console.log(images);
+  const userId = req?.user?._id;
   const data = {
     ...req.body,
     tags: req.body.tags
@@ -39,6 +40,10 @@ const createItem = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(400, "You can upload a maximum of 5 images");
   }
 
+  const user = await User.findById(userId);
+
+  if (!user) throw new ApiError(401, "Invalid user");
+
   const validatedData = itemInputSchema.safeParse(data);
 
   if (!validatedData.success) {
@@ -52,10 +57,31 @@ const createItem = asyncHandler(async (req: Request, res: Response) => {
   const imageUrls = images.map((image: UploadedCloudinaryFile) => image.path);
 
   const dbdata = {
-    userId: req?.user?._id,
+    userId,
     ...validatedData.data,
     images: imageUrls,
   };
+
+  const items = await Item.find({ userId });
+
+  let rewardGiven = false;
+  let points;
+  if (items.length === 0) {
+    points = await Points.create({
+      userId,
+      type: "earned",
+      amount: 20,
+      meta: { reason: "listing" },
+    });
+
+    if (!points)
+      throw new ApiError(
+        500,
+        "Something went wrong while giving reward to user"
+      );
+
+    rewardGiven = true;
+  }
 
   const item = await Item.create(dbdata);
 
@@ -63,9 +89,12 @@ const createItem = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(500, "Something went wrong while listing an item");
   }
 
-  res
-    .status(201)
-    .json(new ApiResponse(201, "Successfully uploaded an item", item));
+  res.status(201).json(
+    new ApiResponse(201, "Successfully uploaded an item", {
+      ...item,
+      reward: { points },
+    })
+  );
 });
 
 const getAllItems = asyncHandler(async (req: Request, res: Response) => {
