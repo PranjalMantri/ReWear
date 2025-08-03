@@ -11,10 +11,6 @@ const getAllNotifications = asyncHandler(
 
     const notifications = await Notification.find({ receiverId: userId });
 
-    if (notifications.length === 0) {
-      throw new ApiError(404, "User has no notifications");
-    }
-
     res
       .status(200)
       .json(
@@ -35,10 +31,6 @@ const getUnreadNotifications = asyncHandler(
       receiverId: userId,
       isRead: false,
     });
-
-    if (notifications.length === 0) {
-      throw new ApiError(404, "User has no unread notifications");
-    }
 
     res
       .status(200)
@@ -89,7 +81,10 @@ const markOneAsRead = asyncHandler(async (req: Request, res: Response) => {
   if (!existingNotification) throw new ApiError(400, "No such notification");
 
   const notification = await Notification.findByIdAndUpdate(
-    notificationId,
+    {
+      _id: notificationId,
+      receiverId: userId,
+    },
     {
       isRead: true,
     },
@@ -97,6 +92,9 @@ const markOneAsRead = asyncHandler(async (req: Request, res: Response) => {
       new: true,
     }
   );
+
+  if (!notification)
+    throw new ApiError(400, "Notification not found or not owned by user");
 
   res
     .status(200)
@@ -116,7 +114,14 @@ const deleteNotification = asyncHandler(async (req: Request, res: Response) => {
   const existingNotification = await Notification.findById(notificationId);
   if (!existingNotification) throw new ApiError(400, "No such notification");
 
-  await Notification.findByIdAndDelete(notificationId);
+  const result = await Notification.deleteOne({
+    _id: notificationId,
+    receiverId: userId,
+  });
+
+  if (result.deletedCount === 0) {
+    throw new ApiError(400, "Notification not found or not owned by user");
+  }
 
   res
     .status(200)

@@ -15,7 +15,7 @@ import userRouter from "./routes/user.router.ts";
 import itemRouter from "./routes/item.router.ts";
 import swapRouter from "./routes/swap.router.ts";
 import redemptionRouter from "./routes/redemption.router.ts";
-import notificationRouter from "./routes/notificatin.router.ts";
+import notificationRouter from "./routes/notification.router.ts";
 import errorHandler from "./middlewares/errorHandler.ts";
 
 app.use("/api/v1/user", userRouter);
