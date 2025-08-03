@@ -181,7 +181,7 @@ const logout = asyncHandler(async (req: Request, res: Response) => {
     .status(200)
     .clearCookie("accessToken")
     .clearCookie("refreshToken")
-    .json(new ApiResponse(200, "Logged out user Successfully", {}));
+    .json(new ApiResponse(200, "Logged out user Successfully", null));
 });
 
 const getCurrentUserDetails = asyncHandler(
@@ -232,11 +232,11 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
     .status(201)
     .cookie("accessToken", accessToken, cookieOptions)
     .cookie("refreshToken", refreshToken, cookieOptions)
-    .json(new ApiResponse(200, "New tokens generated Successfully", {}));
+    .json(new ApiResponse(200, "New tokens generated Successfully", null));
 });
 
 const getUserDetails = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.params.id;
+  const userId = req.user?._id;
 
   const user = await User.findById(userId).select("-password -refreshToken");
 
@@ -312,9 +312,6 @@ const getUserPointsHistory = asyncHandler(
     const userId = req.user?._id;
 
     if (!userId) throw new ApiError(401, "Unauthorized request");
-
-    const user = await User.findById(userId);
-    if (!user) throw new ApiError(404, "Invalid user");
 
     const pointsHistory = await Points.find({ userId });
 

@@ -41,10 +41,6 @@ const createItem = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(400, "You can upload a maximum of 5 images");
   }
 
-  const user = await User.findById(userId);
-
-  if (!user) throw new ApiError(401, "Invalid user");
-
   const validatedData = itemInputSchema.safeParse(data);
 
   if (!validatedData.success) {

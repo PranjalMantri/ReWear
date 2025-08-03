@@ -52,12 +52,6 @@ const proposeSwap = asyncHandler(async (req: Request, res: Response) => {
 const getIncomingSwaps = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?._id;
 
-  const user = await User.findById(userId);
-
-  if (!user) {
-    throw new ApiError(404, "Invalid user id");
-  }
-
   const incomingSwaps = await Swap.find({ receiver: userId })
     .populate("proposer", "name email")
     .populate("proposerItemId")
@@ -76,12 +70,6 @@ const getIncomingSwaps = asyncHandler(async (req: Request, res: Response) => {
 
 const getOutgoingSwaps = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?._id;
-
-  const user = await User.findById(userId);
-
-  if (!user) {
-    throw new ApiError(404, "Invalid user id");
-  }
 
   const outgoingSwaps = await Swap.find({ proposer: userId })
     .populate("receiver", "name email")
@@ -102,12 +90,6 @@ const getOutgoingSwaps = asyncHandler(async (req: Request, res: Response) => {
 const getAllSwaps = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?._id;
 
-  const user = await User.findById(userId);
-
-  if (!user) {
-    throw new ApiError(404, "Invalid user id");
-  }
-
   const swaps = await Swap.find({
     $or: [{ proposer: userId }, { receiver: userId }],
   })
@@ -126,12 +108,6 @@ const getAllSwaps = asyncHandler(async (req: Request, res: Response) => {
 const getSwapById = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?._id;
   const { swapId } = req.params;
-
-  const user = await User.findById(userId);
-
-  if (!user) {
-    throw new ApiError(404, "Invalid user id");
-  }
 
   if (!swapId) {
     throw new ApiError(404, "Swap Id is required");
