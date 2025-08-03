@@ -2,6 +2,7 @@ import mongoose, { Document, mongo, Schema } from "mongoose";
 import { z } from "zod";
 import {
   pointsInputSchema,
+  PointsReasonEnum,
   PointsTypeEnum,
 } from "../../../common/schema/points.schema.ts";
 
@@ -29,7 +30,7 @@ const pointsSchema = new Schema(
       type: Number,
       required: true,
     },
-    meta: { type: Schema.Types.Mixed, default: {} },
+    meta: { type: String, enum: PointsReasonEnum.options },
   },
   { timestamps: true }
 );
