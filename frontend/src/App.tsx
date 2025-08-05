@@ -6,6 +6,7 @@ import useUserStore from "./store/user.store";
 import HomePage from "./pages/HomePage";
 import Layout from "./pages/Layout";
 import { useEffect } from "react";
+import RedirectIfLoggedIn from "./components/RedirectIfLoggedIn";
 
 function App() {
   const isUserLoggedIn = useUserStore((state) => state.isUserLoggedIn);
@@ -35,8 +36,22 @@ function App() {
             )
           }
         />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/signin" element={<SigninPage />} />
+        <Route
+          path="/signup"
+          element={
+            <RedirectIfLoggedIn>
+              <SignupPage />
+            </RedirectIfLoggedIn>
+          }
+        />
+        <Route
+          path="/signin"
+          element={
+            <RedirectIfLoggedIn>
+              <SigninPage />
+            </RedirectIfLoggedIn>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

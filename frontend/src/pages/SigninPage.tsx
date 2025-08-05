@@ -36,7 +36,7 @@ function SignupPage() {
 
   const onSubmit: SubmitHandler<SigninFormFields> = async (data) => {
     await signinUser(data);
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   return (
@@ -127,6 +127,7 @@ function SignupPage() {
             Already have an account?
             <Link
               to={"/signup"}
+              replace
               className="ml-1 text-sm text-emerald-500 font-medium hover:underline"
             >
               Sign up

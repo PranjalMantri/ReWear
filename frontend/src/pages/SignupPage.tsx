@@ -44,7 +44,7 @@ function SignupPage() {
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     try {
       await signupUser(data);
-      navigate("/");
+      navigate("/", { replace: true });
     } catch (error) {}
   };
 
@@ -192,6 +192,7 @@ function SignupPage() {
             Already Registered?
             <Link
               to={"/signin"}
+              replace
               className="ml-1 text-sm text-emerald-500 font-medium hover:underline"
             >
               Sign in
