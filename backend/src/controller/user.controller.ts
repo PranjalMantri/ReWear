@@ -73,7 +73,9 @@ const signup = asyncHandler(async (req: Request, res: Response) => {
     userId: user._id,
     type: "earned",
     amount: 20,
-    meta: { reason: "registration" },
+    meta: {
+      reason: "registration",
+    },
   });
 
   if (!points) {
@@ -113,8 +115,8 @@ const signup = asyncHandler(async (req: Request, res: Response) => {
 
   res.status(201).json(
     new ApiResponse(201, "User registered succcessfuly", {
-      ...userResponse,
-      reward: { points },
+      user: userResponse,
+      reward: points,
     })
   );
 });

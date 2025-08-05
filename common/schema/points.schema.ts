@@ -27,5 +27,5 @@ export const pointsInputSchema = z.object({
       .min(0, "Amount must be 0 or more")
       .refine((val) => !isNaN(val), "Amount must be a number")
   ),
-  meta: z.record(z.string(), PointsReasonEnum).optional(),
+  meta: z.object({ reason: PointsReasonEnum }).optional(),
 });

@@ -30,7 +30,12 @@ const pointsSchema = new Schema(
       type: Number,
       required: true,
     },
-    meta: { type: String, enum: PointsReasonEnum.options },
+    meta: {
+      reason: {
+        type: String,
+        enum: PointsReasonEnum.options,
+      },
+    },
   },
   { timestamps: true }
 );
