@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Divider from "../components/UI/Divider";
 import Input from "../components/UI/Input";
 import { Eye, EyeOff, Mail } from "lucide-react";
@@ -7,15 +7,19 @@ import { useForm, Controller, type SubmitHandler } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signinSchema } from "../../../common/schema/user.schema";
+import useUserStore from "../store/user.store";
 
-type FormFields = z.infer<typeof signinSchema>;
+type SigninFormFields = z.infer<typeof signinSchema>;
 
 function SignupPage() {
+  const { isLoading, error, signinUser } = useUserStore();
+  const navigate = useNavigate();
+
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormFields>({
+  } = useForm<SigninFormFields>({
     defaultValues: {
       email: "",
       password: "",
@@ -30,8 +34,9 @@ function SignupPage() {
     "px-4 py-2 border border-emerald-200 rounded-xl focus:outline-none focus:border-2 focus:border-emerald-400";
   const commonLabelSyles = "font-semibold";
 
-  const onSubmit: SubmitHandler<FormFields> = (data) => {
-    console.log(data);
+  const onSubmit: SubmitHandler<SigninFormFields> = async (data) => {
+    await signinUser(data);
+    navigate("/");
   };
 
   return (
@@ -94,11 +99,18 @@ function SignupPage() {
           )}
         </div>
 
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl text-center text-sm font-medium">
+            {error}
+          </div>
+        )}
+
         <button
+          disabled={isLoading}
           type="submit"
           className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-3 mt-2 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition font-semibold"
         >
-          Sign In
+          {isLoading ? "Signing in..." : "Sign in"}
         </button>
 
         <Divider>or</Divider>

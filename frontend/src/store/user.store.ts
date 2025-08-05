@@ -1,7 +1,10 @@
 import { create } from "zustand";
 import api from "../util/api";
 import { z } from "zod";
-import type { signupSchema } from "../../../common/schema/user.schema";
+import type {
+  signinSchema,
+  signupSchema,
+} from "../../../common/schema/user.schema";
 
 interface UserStore {
   isLoading: boolean;
@@ -9,19 +12,20 @@ interface UserStore {
   isUserLoggedIn: boolean;
   isAuthChecked: boolean;
   user: Object | null;
-  signupUser: (data: FormFields) => Promise<void>;
-  signinUser: (data: FormFields) => Promise<void>;
+  signupUser: (data: SignupFormFields) => Promise<void>;
+  signinUser: (data: SigninFormFields) => Promise<void>;
   checkAuth: () => Promise<void>;
 }
 
-type FormFields = z.infer<typeof signupSchema>;
+type SignupFormFields = z.infer<typeof signupSchema>;
+type SigninFormFields = z.infer<typeof signinSchema>;
 
 const useUserStore = create<UserStore>((set) => ({
   isLoading: false,
   error: null,
   isUserLoggedIn: false,
   user: null,
-  signupUser: async (data: FormFields) => {
+  signupUser: async (data: SignupFormFields) => {
     try {
       set({ isLoading: true, error: null });
 
@@ -37,7 +41,7 @@ const useUserStore = create<UserStore>((set) => ({
       set({ isLoading: false });
     }
   },
-  signinUser: async (data: FormFields) => {
+  signinUser: async (data: SigninFormFields) => {
     try {
       set({ isLoading: true, error: null });
 
@@ -67,7 +71,7 @@ const useUserStore = create<UserStore>((set) => ({
       });
     } catch (err: any) {
       set({
-        isUserLoggedIn: true,
+        isUserLoggedIn: false,
         user: null,
         error: null,
       });
