@@ -5,9 +5,20 @@ import SigninPage from "./pages/SigninPage";
 import useUserStore from "./store/user.store";
 import HomePage from "./pages/HomePage";
 import Layout from "./pages/Layout";
+import { useEffect } from "react";
 
 function App() {
   const isUserLoggedIn = useUserStore((state) => state.isUserLoggedIn);
+  const isAuthChecked = useUserStore((state) => state.isAuthChecked);
+
+  useEffect(() => {
+    useUserStore.getState().checkAuth();
+  }, []);
+
+  console.log(isAuthChecked);
+  if (!isAuthChecked) {
+    return <div></div>;
+  }
 
   return (
     <BrowserRouter>

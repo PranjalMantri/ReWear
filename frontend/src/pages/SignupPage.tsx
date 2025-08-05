@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm, Controller, type SubmitHandler } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,10 +9,14 @@ import Input from "../components/UI/Input";
 import Divider from "../components/UI/Divider";
 
 import { signupSchema } from "../../../common/schema/user.schema";
+import useUserStore from "../store/user.store";
 
 type FormFields = z.infer<typeof signupSchema>;
 
 function SignupPage() {
+  const { isLoading, error, signupUser } = useUserStore();
+  const navigate = useNavigate();
+
   const {
     control,
     handleSubmit,
@@ -37,8 +41,11 @@ function SignupPage() {
     "px-4 py-2 border border-emerald-200 rounded-xl focus:outline-none focus:border-2 focus:border-emerald-400";
   const commonLabelSyles = "font-semibold";
 
-  const onSubmit: SubmitHandler<FormFields> = (data) => {
-    console.log("Form submitted successfully:", data);
+  const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    try {
+      await signupUser(data);
+      navigate("/");
+    } catch (error) {}
   };
 
   return (
@@ -157,11 +164,18 @@ function SignupPage() {
           )}
         </div>
 
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl text-center text-sm font-medium">
+            {error}
+          </div>
+        )}
+
         <button
+          disabled={isLoading}
           type="submit"
           className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-3 mt-2 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition font-semibold"
         >
-          Sign Up
+          {isLoading ? "Signing up..." : "Sign up"}
         </button>
 
         <Divider>or</Divider>
