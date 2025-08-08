@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { itemSchema } from "../../../common/schema/item.schema";
-import { sizeMap } from "../constants";
+import { itemSchema } from "../../../../common/schema/item.schema";
+import { sizeMap } from "../../constants";
 import { Link } from "react-router-dom";
 
 type ItemCardProps = z.infer<typeof itemSchema>;
@@ -17,7 +17,7 @@ const ItemCard: React.FC<ItemCardProps> = (item) => {
     .join(" | ");
 
   return (
-    <Link to={`/items/${_id}`} className="block group w-64">
+    <Link to={`/items/${_id}`} className="block group w-full">
       <div className="bg-white rounded-lg shadow-sm overflow-hidden transition-shadow duration-300 group-hover:shadow-xl flex flex-col h-full">
         <div className="relative">
           <img
