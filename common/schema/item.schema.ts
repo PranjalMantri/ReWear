@@ -63,3 +63,9 @@ export const itemUpdateSchema = z.object({
       .refine((val) => !isNaN(val), "Price must be a number")
   ),
 });
+
+export const itemSchema = itemInputSchema.extend({
+  _id: z.string(),
+  createdAt: z.string().datetime().optional(),
+  updateAt: z.string().datetime().optional(),
+});
