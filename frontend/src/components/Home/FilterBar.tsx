@@ -3,10 +3,15 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useSearchParams } from "react-router-dom";
 import useFilterStore from "../../store/filter.store";
 
+interface IFilterOption {
+  label: string;
+  value: string;
+}
+
 interface IFilterGroup {
   name: string;
   queryKey: string;
-  options: string[];
+  options: IFilterOption[];
 }
 
 const filterGroups: IFilterGroup[] = [
@@ -14,37 +19,48 @@ const filterGroups: IFilterGroup[] = [
     name: "Category",
     queryKey: "category",
     options: [
-      "Shirt",
-      "Tshirt",
-      "Pant",
-      "Jacket",
-      "Dress",
-      "Accessories",
-      "Footwear",
+      { label: "Shirt", value: "shirt" },
+      { label: "T-shirt", value: "tshirt" },
+      { label: "Pant", value: "pant" },
+      { label: "Jacket", value: "jacket" },
+      { label: "Dress", value: "dress" },
+      { label: "Accessories", value: "accessories" },
+      { label: "Footwear", value: "footwear" },
     ],
   },
   {
     name: "Size",
     queryKey: "size",
-    options: ["S", "M", "L", "XL"],
+    options: [
+      { label: "S", value: "small" },
+      { label: "M", value: "medium" },
+      { label: "L", value: "large" },
+      { label: "XL", value: "xlarge" },
+    ],
   },
   {
     name: "Brand",
     queryKey: "brand",
-    options: ["Adidas", "Zara", "Levi's", "H&M"],
+    options: [
+      { label: "Adidas", value: "Adidas" },
+      { label: "Zara", value: "Zara" },
+      { label: "Levi's", value: "Levi's" },
+      { label: "H&M", value: "H&M" },
+      { label: "Other", value: "other" },
+    ],
   },
   {
     name: "Condition",
     queryKey: "condition",
     options: [
-      "New with tags",
-      "New without tags",
-      "Like ew",
-      "Used",
-      "Gently sed",
-      "Good",
-      "Fair",
-      "Poor",
+      { label: "New with tags", value: "new_with_tags" },
+      { label: "New without tags", value: "new_without_tags" },
+      { label: "Like New", value: "like_new" },
+      { label: "Used", value: "used" },
+      { label: "Gently Used", value: "gently_used" },
+      { label: "Good", value: "good" },
+      { label: "Fair", value: "fair" },
+      { label: "Poor", value: "poor" },
     ],
   },
 ];
@@ -67,11 +83,15 @@ function FilterBar() {
         const selectedValue =
           selectedFilters[group.queryKey] || searchParams.get(group.queryKey);
 
+        const selectedOption = group.options.find(
+          (o) => o.value === selectedValue
+        );
+
         return (
           <DropdownMenu.Root key={group.name}>
             <DropdownMenu.Trigger asChild>
               <button className="flex items-center gap-2 py-2 px-4 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100 data-[state=open]:bg-gray-100 data-[state=open]:ring-2 data-[state=open]:ring-black transition-all">
-                <span>{selectedValue || group.name}</span>
+                <span>{selectedOption?.label || group.name}</span>
                 <ChevronDown className="w-4 h-4" />
               </button>
             </DropdownMenu.Trigger>
@@ -84,11 +104,11 @@ function FilterBar() {
               >
                 {group.options.map((option) => (
                   <DropdownMenu.Item
-                    key={option}
-                    onSelect={() => handleSelect(group.queryKey, option)}
+                    key={option.label}
+                    onSelect={() => handleSelect(group.queryKey, option.value)}
                     className="px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 hover:text-black cursor-pointer focus:outline-none focus:bg-gray-100"
                   >
-                    {option}
+                    {option.label}
                   </DropdownMenu.Item>
                 ))}
               </DropdownMenu.Content>
