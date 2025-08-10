@@ -2,15 +2,18 @@ import FilterBar from "../components/Home/FilterBar";
 import ItemGrid from "../components/Home/ItemGrid";
 import useItemStore from "../store/item.store";
 import useFilterStore from "../store/filter.store";
+import useDebounce from "../hooks/useDebounce";
 import { useEffect } from "react";
 
 function HomePage() {
   const { isLoading, error, items, fetchItems } = useItemStore();
   const { filters, searchQuery } = useFilterStore();
 
+  const debouncedSearch = useDebounce(searchQuery, 300);
+
   useEffect(() => {
-    fetchItems(filters, searchQuery);
-  }, [filters, fetchItems, searchQuery]);
+    fetchItems(filters, debouncedSearch);
+  }, [filters, fetchItems, debouncedSearch]);
 
   return (
     <div className="bg-gray-50 font-sans min-h-screen">
