@@ -23,13 +23,13 @@ const ItemCard: React.FC<ItemCardProps> = (item) => {
           <img
             src={images?.[0]}
             alt={title}
-            className="w-full object-cover h-60"
+            className="w-full object-contain h-60"
           />
           <span className="absolute top-1.5 right-2 bg-black/70 text-white  text-xs font-semibold px-2 py-1 rounded-full flex items-center justify-center">
             {formatString(listingType)}
           </span>
         </div>
-        <div className="py-3 px-1 flex flex-grow flex-col">
+        <div className="py-3 px-2 flex flex-grow flex-col">
           <h3
             className="text-lg font-semibold text-gray-800 truncate"
             title={title}
