@@ -24,7 +24,7 @@ const createItem = asyncHandler(async (req: Request, res: Response) => {
   const userId = req?.user?._id;
   const data = {
     ...req.body,
-    tags: req.body.tags
+    tags: req.body?.tags
       ? req.body.tags.split(",").map((tag: string) => tag.trim())
       : [],
   };
@@ -61,10 +61,8 @@ const createItem = asyncHandler(async (req: Request, res: Response) => {
 
   const items = await Item.find({ userId });
 
-  let rewardGiven = false;
-  let points;
   if (items.length === 0) {
-    points = await Points.create({
+    const points = await Points.create({
       userId,
       type: "earned",
       amount: 20,
@@ -76,8 +74,6 @@ const createItem = asyncHandler(async (req: Request, res: Response) => {
         500,
         "Something went wrong while giving reward to user"
       );
-
-    rewardGiven = true;
 
     await Notification.create({
       receiverId: userId,
@@ -93,12 +89,9 @@ const createItem = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(500, "Something went wrong while listing an item");
   }
 
-  res.status(201).json(
-    new ApiResponse(201, "Successfully uploaded an item", {
-      ...item,
-      reward: { points },
-    })
-  );
+  res
+    .status(201)
+    .json(new ApiResponse(201, "Successfully uploaded an item", item));
 });
 
 const getAllItems = asyncHandler(async (req: Request, res: Response) => {
@@ -136,7 +129,6 @@ const getAllItems = asyncHandler(async (req: Request, res: Response) => {
   if (search) {
     const orConditions: any = [{ name: { $regex: search, $options: "i" } }];
 
-    // Only include search-based tag matching if tags weren't already filtered
     if (!tags) {
       orConditions.push({ tags: { $in: [search.toString()] } });
     }
@@ -152,21 +144,7 @@ const getAllItems = asyncHandler(async (req: Request, res: Response) => {
   const totalItems = await Item.countDocuments(filters);
   const totalPages = Math.ceil(totalItems / limit);
 
-  if (totalItems === 0) {
-    return res.status(200).json(
-      new ApiResponse(200, "No items found", {
-        items: [],
-        pagination: {
-          totalItems: 0,
-          totalPages: 0,
-          currentPage: page,
-          limit,
-        },
-      })
-    );
-  }
-
-  const itemResponse = {
+  const responsePayload = {
     items,
     pagination: {
       totalItems,
@@ -178,7 +156,13 @@ const getAllItems = asyncHandler(async (req: Request, res: Response) => {
 
   res
     .status(200)
-    .json(new ApiResponse(200, "Successfully fetched items", itemResponse));
+    .json(
+      new ApiResponse(
+        200,
+        totalItems === 0 ? "No items found" : "Successfully fetched items",
+        responsePayload
+      )
+    );
 });
 
 const getItemById = asyncHandler(async (req: Request, res: Response) => {
@@ -191,12 +175,10 @@ const getItemById = asyncHandler(async (req: Request, res: Response) => {
   const item = await Item.findById(itemId);
 
   if (!item) {
-    throw new ApiError(500, "Something went wrong while fetching the item");
+    throw new ApiError(404, "Item not found");
   }
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, "Successfully fetched item using ID", item));
+  res.status(200).json(new ApiResponse(200, "Successfully fetched item", item));
 });
 
 const updateItem = asyncHandler(async (req: Request, res: Response) => {
@@ -210,13 +192,13 @@ const updateItem = asyncHandler(async (req: Request, res: Response) => {
   const existingItem = await Item.findById(itemId);
 
   if (!existingItem) {
-    throw new ApiError(500, "Something went wrong while fetching the item");
+    throw new ApiError(404, "Item not found");
   }
 
   if (!existingItem.userId.equals(req.user?._id)) {
     throw new ApiError(
-      404,
-      "User does not have the permission to update the item"
+      403,
+      "User does not have the permission to update this item"
     );
   }
 
@@ -227,12 +209,6 @@ const updateItem = asyncHandler(async (req: Request, res: Response) => {
       validatedData.error.flatten().fieldErrors
     );
   }
-
-  // get the old images that user wants to keep from frontend
-  // get the new images that user uploaded
-  // get their urls and create a combined array of old and new images
-  // store this in the db
-  // get the deleted images url and actually delete them from cloudinary
 
   const keepImages: string[] = req.body.keepImages
     ? Array.isArray(req.body.keepImages)
@@ -266,26 +242,18 @@ const updateItem = asyncHandler(async (req: Request, res: Response) => {
       condition: validatedData.data.condition || existingItem.condition,
       size: validatedData.data.size || existingItem.size,
       price: validatedData.data.price || existingItem.price,
-      images: [...finalImageList],
+      images: finalImageList,
     },
-    {
-      new: true,
-    }
+    { new: true }
   );
 
-  res.status(201).json(new ApiResponse(201, "Updated item Successfully", item));
+  res.status(200).json(new ApiResponse(200, "Item updated successfully", item));
 });
 
 const deleteItem = asyncHandler(async (req: Request, res: Response) => {
   const { itemId } = req.params;
 
   if (!req?.user?._id) {
-    throw new ApiError(401, "Unauthorized request");
-  }
-
-  const userId = new mongoose.Types.ObjectId(req.user._id);
-
-  if (!userId) {
     throw new ApiError(401, "Unauthorized request");
   }
 
@@ -299,26 +267,31 @@ const deleteItem = asyncHandler(async (req: Request, res: Response) => {
   });
 
   if (!existingItem) {
-    throw new ApiError(500, "Could not find an item");
+    throw new ApiError(404, "Item not found");
+  }
+
+  if (!existingItem.userId.equals(req.user._id)) {
+    throw new ApiError(
+      403,
+      "User does not have the permission to delete this item"
+    );
   }
 
   const deletedItem = await Item.deleteOne({
     _id: itemId,
-    userId,
+    userId: req.user._id,
     status: "active",
   });
 
-  if (!deletedItem) {
-    throw new ApiError(500, "Something went wrong while deleting an item");
+  if (deletedItem.deletedCount === 0) {
+    throw new ApiError(500, "Something went wrong while deleting the item");
   }
 
   for (const url of existingItem.images) {
     await deleteImage(url);
   }
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, "Deleted item Successfully", deletedItem));
+  res.status(200).json(new ApiResponse(200, "Item deleted successfully", {}));
 });
 
 export { createItem, getAllItems, getItemById, updateItem, deleteItem };
