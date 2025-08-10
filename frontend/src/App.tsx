@@ -16,7 +16,6 @@ function App() {
     useUserStore.getState().checkAuth();
   }, []);
 
-  console.log(isAuthChecked);
   if (!isAuthChecked) {
     return <div></div>;
   }
