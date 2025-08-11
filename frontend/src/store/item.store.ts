@@ -3,17 +3,18 @@ import type { itemSchema } from "../../../common/schema/item.schema";
 import type z from "zod";
 import api from "../util/api";
 
-type Items = z.infer<typeof itemSchema>;
+type Item = z.infer<typeof itemSchema>;
 
 interface ItemStore {
-  items: Items[];
+  items: Item[];
   isLoading: Boolean;
-  error: null;
+  error: string | null;
   page: number;
   limit: number;
   hasMore: boolean;
   fetchItems: (filters: string, query: string) => Promise<void>;
   clearItems: () => void;
+  fetchItemById: (itemId: string) => Promise<Item>;
 }
 
 const useItemStore = create<ItemStore>((set, get) => ({
@@ -50,6 +51,11 @@ const useItemStore = create<ItemStore>((set, get) => ({
     } catch (err: any) {
       console.log(err);
 
+      if (err.status == 500) {
+        set({ error: "Something went wrong while fetching items" });
+        return;
+      }
+
       const errorMessage =
         err?.response.data.message || "An unexpected error occurred";
 
@@ -61,6 +67,22 @@ const useItemStore = create<ItemStore>((set, get) => ({
   },
   clearItems: () => {
     set({ items: [], page: 1 });
+  },
+  fetchItemById: async (itemId: string) => {
+    try {
+      const response = await api.get(`/items/${itemId}`);
+      return response.data.data;
+    } catch (err: any) {
+      console.log("Failed to fetch item by ID: ", err);
+
+      if (err.status == 500) {
+        throw new Error("Something went wrong while fetching item");
+      }
+
+      throw new Error(
+        err?.response?.data?.message || "Failed to fetch item by Id"
+      );
+    }
   },
 }));
 
