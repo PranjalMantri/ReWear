@@ -7,11 +7,11 @@ import HomePage from "./pages/HomePage";
 import Layout from "./pages/Layout";
 import { useEffect } from "react";
 import RedirectIfLoggedIn from "./components/RedirectIfLoggedIn";
+import ProductDetailPage from "./pages/ProductDetailPage";
 
 function App() {
   const isUserLoggedIn = useUserStore((state) => state.isUserLoggedIn);
   const isAuthChecked = useUserStore((state) => state.isAuthChecked);
-
   useEffect(() => {
     useUserStore.getState().checkAuth();
   }, []);
@@ -23,18 +23,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={
-            isUserLoggedIn ? (
-              <Layout>
-                <HomePage />{" "}
-              </Layout>
-            ) : (
-              <Landing />
-            )
-          }
-        />
+        <Route path="/" element={isUserLoggedIn ? <Layout /> : <Landing />}>
+          {isUserLoggedIn && <Route index element={<HomePage />} />}
+        </Route>
         <Route
           path="/signup"
           element={
@@ -51,6 +42,9 @@ function App() {
             </RedirectIfLoggedIn>
           }
         />
+        <Route element={<Layout />}>
+          <Route path="/items/:itemId" element={<ProductDetailPage />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );
