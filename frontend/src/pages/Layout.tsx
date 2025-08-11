@@ -1,10 +1,11 @@
 import Navbar from "../components/Navbar";
+import { Outlet } from "react-router-dom";
 
-function Layout({ children }: { children: React.ReactNode }) {
+function Layout() {
   return (
     <div>
       <Navbar />
-      {children}
+      <Outlet />
     </div>
   );
 }
