@@ -150,6 +150,8 @@ const signin = asyncHandler(async (req: Request, res: Response) => {
     userId: existingUser._id,
   });
 
+  existingUser.refreshToken = refreshToken;
+  existingUser.save();
   res.cookie("accessToken", accessToken, {
     ...cookieOptions,
     maxAge: 15 * 60 * 1000,
@@ -229,6 +231,9 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
   const { accessToken, refreshToken } = await createTokens({
     userId: user._id,
   });
+
+  user.refreshToken = refreshToken;
+  user.save();
 
   res
     .status(201)
