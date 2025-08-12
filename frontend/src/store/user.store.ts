@@ -66,7 +66,7 @@ const useUserStore = create<UserStore>((set) => ({
       const response = await api.get("/user/me");
       set({
         isUserLoggedIn: true,
-        user: response.data.user,
+        user: response.data.data,
         error: null,
       });
     } catch (err: any) {
