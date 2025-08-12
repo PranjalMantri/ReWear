@@ -1,5 +1,8 @@
 import type z from "zod";
 import type { itemSchema } from "../../../common/schema/item.schema";
+import useRedeemStore from "../store/redeem.store";
+import { useEffect, useState } from "react";
+import useUserStore from "../store/user.store";
 
 type Item = z.infer<typeof itemSchema>;
 
@@ -8,8 +11,51 @@ interface ProductDetailsProps {
 }
 
 const ProductDetails = ({ item }: ProductDetailsProps) => {
-  const handleAction = () => {
-    console.log(`Action taken for ${item.listingType} item:`, item._id);
+  const [itemRedeemed, setItemRedeemed] = useState(false);
+  const [redeemedByCurrentUser, setRedeemedByCurrentUser] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
+
+  const {
+    isLoading: redemptionLoading,
+    error: redemptionError,
+    redeemItem,
+    redemptionSuccessful,
+    getItemStatus,
+  } = useRedeemStore();
+
+  const { user } = useUserStore();
+
+  useEffect(() => {
+    const checkItemStatus = async () => {
+      setStatusLoading(true);
+      try {
+        const response = await getItemStatus(item._id);
+        console.log(response);
+
+        if (response.itemRedeemed) {
+          setItemRedeemed(true);
+
+          if (response.redeemer === (user as any)._id) {
+            setRedeemedByCurrentUser(true);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to get item status:", error);
+      } finally {
+        setStatusLoading(false);
+      }
+    };
+
+    checkItemStatus();
+  }, [item, user, getItemStatus]);
+
+  const isRedeemDisabled =
+    redemptionLoading || redemptionSuccessful || itemRedeemed || statusLoading;
+
+  const handleAction = async () => {
+    if (item.listingType === "redeem") {
+      await redeemItem(item._id);
+    }
   };
 
   return (
@@ -47,15 +93,69 @@ const ProductDetails = ({ item }: ProductDetailsProps) => {
             <h3 className="font-semibold text-lg text-gray-900">
               Redeem with Points
             </h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Use your accumulated points to redeem this item instantly.
-            </p>
-            <button
-              onClick={handleAction}
-              className="mt-5 w-full rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 py-3 text-white font-medium hover:from-emerald-600 hover:to-teal-600 transition-colors"
-            >
-              Redeem ({item.price} Points)
-            </button>
+            {statusLoading ? (
+              <p className="mt-2 text-sm text-gray-600">
+                Checking item status...
+              </p>
+            ) : redeemedByCurrentUser ? (
+              <div className="flex items-center space-x-2 text-emerald-600 mt-2">
+                <svg
+                  className="h-5 w-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <p className="text-sm">
+                  You have already redeemed this item. Check your profile for
+                  updates.
+                </p>
+              </div>
+            ) : itemRedeemed ? (
+              <p className="mt-2 text-sm text-red-600">
+                This item has already been redeemed by another user.
+              </p>
+            ) : redemptionSuccessful ? (
+              <div className="flex items-center space-x-2 text-emerald-600 mt-2">
+                <svg
+                  className="h-5 w-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <p className="text-sm">
+                  Congratulations! You've successfully redeemed this item. Check
+                  out the profile page for item related updates.
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="mt-2 text-sm text-gray-600">
+                  Use your accumulated points to redeem this item instantly.
+                </p>
+                <button
+                  disabled={isRedeemDisabled}
+                  onClick={handleAction}
+                  className="mt-5 w-full rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 py-3 text-white font-medium hover:from-emerald-600 hover:to-teal-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {redemptionLoading
+                    ? "Redeeming..."
+                    : `Redeem (${item.price} Points)`}
+                </button>
+                {redemptionError && (
+                  <p className="mt-2 text-sm text-red-600">{redemptionError}</p>
+                )}
+              </>
+            )}
           </>
         )}
 
