@@ -45,6 +45,7 @@ const redeemItem = asyncHandler(async (req: Request, res: Response) => {
     userId,
     itemId,
     pointsUsed: item.price,
+    status: "pending",
   });
 
   const pointsDeducted = await Points.create({
@@ -58,13 +59,16 @@ const redeemItem = asyncHandler(async (req: Request, res: Response) => {
   }
 
   await Notification.create({
-    receiverId: (item.userId as any).name,
+    receiverId: item.userId._id as any,
     type: "item_redeemed",
     message: `${user.fullname} has redeemed your item: - ${item.title}`,
   });
 
   item.status = "inactive";
   await item.save();
+
+  user.points -= item.price;
+  await user.save();
 
   res
     .status(201)
@@ -250,6 +254,34 @@ const cancelRedemption = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, "Redeemption was cancelled", redemption));
 });
 
+const getItemRedemptionDetails = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { itemId } = req.params;
+    const userId = req.user?._id;
+
+    if (!itemId) {
+      throw new ApiError(400, "Item ID is required");
+    }
+
+    const item = await Item.findById(itemId).populate("userId", "name");
+    if (!item) throw new ApiError(404, "Item not found");
+
+    const user = await User.findById(userId);
+    if (!user) throw new ApiError(404, "Invalid user");
+
+    const itemRedemption = await Redemption.findOne({
+      itemId,
+    });
+
+    res.status(201).json(
+      new ApiResponse(201, "Succesfuly fetched item redemption details: ", {
+        itemRedeemed: itemRedemption ? true : false,
+        redeemer: itemRedemption?.userId,
+      })
+    );
+  }
+);
+
 export {
   getAllRedemptions,
   getRedemptionById,
@@ -257,4 +289,5 @@ export {
   markItemShipped,
   cancelRedemption,
   redeemItem,
+  getItemRedemptionDetails,
 };
