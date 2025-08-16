@@ -1,9 +1,43 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import useNotificationStore from "../store/notifications.store";
+import { useEffect } from "react";
+import { notificationSchema } from "../../../common/schema/notification.schema";
+import type z from "zod";
+import Notification from "./Notification";
+
+type TNotification = z.infer<typeof notificationSchema>;
 
 function NotificationModal() {
-  const { isModalOpen, setIsModalOpen } = useNotificationStore();
+  const {
+    isModalOpen,
+    setIsModalOpen,
+    fetchNotifications,
+    notifications,
+    markNotificationAsRead,
+    isLoading,
+    error,
+  } = useNotificationStore();
+
+  useEffect(() => {
+    const getNotifications = async () => {
+      await fetchNotifications();
+    };
+
+    getNotifications();
+  }, [fetchNotifications]);
+
+  const onDismiss = async (notificationId: string) => {
+    await markNotificationAsRead(notificationId);
+  };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
 
   return (
     <div>
@@ -14,7 +48,19 @@ function NotificationModal() {
               Notifications
             </Dialog.Title>
             <Dialog.Description className="text-sm text-slate-500 my-2">
-              This is your notification center.
+              {notifications.map((notification: TNotification) => (
+                <Notification
+                  key={notification._id}
+                  notification={notification}
+                  onDismiss={() => {
+                    onDismiss(notification._id);
+                  }}
+                />
+              ))}
+
+              {notifications.length == 0 && (
+                <div>No new notifications to show</div>
+              )}
             </Dialog.Description>
             <Dialog.Close asChild>
               <button

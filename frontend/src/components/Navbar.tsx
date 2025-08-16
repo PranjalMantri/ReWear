@@ -7,7 +7,7 @@ import NotificationModal from "./NotificationModal";
 const Navbar: React.FC = () => {
   const { searchQuery, updateSearchQuery } = useFilterStore();
 
-  const { isModalOpen, setIsModalOpen } = useNotificationStore();
+  const { isModalOpen, setIsModalOpen, notifications } = useNotificationStore();
 
   return (
     <header className="w-full z-50 border-b border-b-slate-200 sticky top-0 bg-white/80 backdrop-blur-sm">
@@ -59,6 +59,16 @@ const Navbar: React.FC = () => {
                 <Bell className="text-slate-800 w-5 h-5" />
               </div>
             </button>
+
+            {notifications && notifications.length > 0 && (
+              <div className="absolute -top-1 -right-1">
+                <div className="bg-emerald-500 w-4 h-4 flex items-center justify-center rounded-full">
+                  <p className="text-[10px] text-white font-bold leading-none">
+                    {notifications.length}
+                  </p>
+                </div>
+              </div>
+            )}
 
             <NotificationModal />
           </div>
