@@ -35,9 +35,8 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const response = await refreshApi.post("/user/refresh");
+        await refreshApi.post("/user/refresh");
 
-        console.log(response);
         return api(originalRequest);
       } catch (err) {
         console.error("Refresh token failed:", err);
