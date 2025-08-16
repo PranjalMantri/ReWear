@@ -6,13 +6,16 @@ import {
   markAllRead,
   markOneAsRead,
 } from "../controller/notification.controller.ts";
+import { verifyJWT } from "../middlewares/auth.middleware.ts";
 
 const router = Router();
+
+router.use(verifyJWT);
 
 router.get("/", getAllNotifications);
 router.get("/unread", getUnreadNotifications);
 router.patch("/read", markAllRead);
-router.get("/:notificationId", deleteNotification);
-router.get("/:notificationId/read", markOneAsRead);
+router.delete("/:notificationId", deleteNotification);
+router.patch("/:notificationId/read", markOneAsRead);
 
-export default Router;
+export default router;
