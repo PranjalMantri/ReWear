@@ -1,31 +1,45 @@
 import { create } from "zustand";
 import api from "../util/api";
 
-interface RedeemStore {
+interface SwapStore {
   isLoading: boolean;
   error: string | null;
-  redemptionSuccessful: boolean;
-  redeemItem: (itemId: string) => Promise<void>;
+  swapSuccessful: boolean;
+  proposeSwap: (
+    proposedItemId: string,
+    userId: string,
+    userItemId: string
+  ) => Promise<void>;
   getItemStatus: (itemId: string) => Promise<any>;
-  resetRedemptionState: () => void;
+  isSwapModalOpen: boolean;
+  setIsSwapModalOpen: (state: boolean) => void;
+  resetSwapState: () => void;
 }
 
-const useRedeemStore = create<RedeemStore>((set) => ({
+const useSwapStore = create<SwapStore>((set) => ({
   isLoading: false,
   error: null,
-  redemptionSuccessful: false,
-  redeemItem: async (itemId: string) => {
+  swapSuccessful: false,
+  proposeSwap: async (
+    proposedItemId: string,
+    receiver: string,
+    receiveItemId: string
+  ) => {
     set({ isLoading: true, error: null });
 
     try {
-      const response = await api.post(`/redemptions/${itemId}`);
-      set({ redemptionSuccessful: true });
+      const response = await api.post(`/swap/propose`, {
+        proposedItemId,
+        receiver,
+        receiveItemId,
+      });
+      set({ swapSuccessful: true });
       return response.data.data;
     } catch (error: any) {
       console.log(error);
 
       if (error?.status === 500) {
-        set({ error: "Something went wrong while redeeming the item" });
+        set({ error: "Something went wrong while proposing a swap" });
         return;
       }
 
@@ -44,7 +58,7 @@ const useRedeemStore = create<RedeemStore>((set) => ({
     set({ isLoading: true, error: null });
 
     try {
-      const response = await api.get(`/redemptions/${itemId}`);
+      const response = await api.get(`/swap/${itemId}`);
       return response.data.data;
     } catch (error: any) {
       console.log(error);
@@ -65,9 +79,18 @@ const useRedeemStore = create<RedeemStore>((set) => ({
       set({ isLoading: false });
     }
   },
-  resetRedemptionState: () => {
-    set({ error: null, isLoading: false, redemptionSuccessful: false });
+  isSwapModalOpen: false,
+  setIsSwapModalOpen: (state: boolean) => {
+    set({ isSwapModalOpen: state });
+  },
+  resetSwapState: () => {
+    set({
+      error: null,
+      isLoading: false,
+      swapSuccessful: false,
+      isSwapModalOpen: false,
+    });
   },
 }));
 
-export default useRedeemStore;
+export default useSwapStore;

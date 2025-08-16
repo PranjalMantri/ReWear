@@ -1,43 +1,17 @@
-import type { itemSchema } from "../../../common/schema/item.schema";
-import { z } from "zod";
 import ProductmageGallery from "../components/ProductmageGallery";
 import ProductDetails from "../components/ProductDetails";
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import useItemStore from "../store/item.store";
-
-type Item = z.infer<typeof itemSchema>;
 
 const ProductDetailPage = () => {
   const { itemId } = useParams();
-  const [item, setItem] = useState<Item | null>(null);
-  const [isLoading, setIsLoading] = useState<Boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchItemById = useItemStore((state) => state.fetchItemById);
+  const { item, isLoading, error, fetchItemById } = useItemStore();
 
   useEffect(() => {
-    const getItem = async () => {
-      try {
-        setIsLoading(true);
-
-        if (!itemId) {
-          setIsLoading(false);
-          setError("The URL might be broken");
-          return;
-        }
-
-        const data = await fetchItemById(itemId);
-        setItem(data);
-      } catch (err) {
-        console.log(err);
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    getItem();
+    if (!itemId) return;
+    fetchItemById(itemId);
   }, [itemId, fetchItemById]);
 
   if (isLoading) {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import useSwapStore from "../store/swap.store";
 
 interface ProductmageGalleryProps {
   images: string[];
@@ -6,6 +7,8 @@ interface ProductmageGalleryProps {
 
 const ProductmageGallery = ({ images }: ProductmageGalleryProps) => {
   const [activeImage, setActiveImage] = useState(images?.[0]);
+
+  const { isSwapModalOpen } = useSwapStore();
 
   if (!activeImage) {
     return (
@@ -16,7 +19,7 @@ const ProductmageGallery = ({ images }: ProductmageGalleryProps) => {
   }
 
   return (
-    <div>
+    <div className={`${isSwapModalOpen ? "opacity-50" : "opacity-100"}`}>
       <img
         src={activeImage}
         alt={"Main image preview"}

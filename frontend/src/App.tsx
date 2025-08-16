@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing";
 import SignupPage from "./pages/SignupPage";
 import SigninPage from "./pages/SigninPage";
@@ -18,6 +18,10 @@ function App() {
 
   if (!isAuthChecked) {
     return <div></div>;
+  }
+
+  if (!isUserLoggedIn) {
+    <Navigate to={"/"} replace />;
   }
 
   return (
