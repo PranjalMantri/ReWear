@@ -1,10 +1,13 @@
 import { Bell, Search } from "lucide-react";
-import React from "react";
 import { Link } from "react-router-dom";
 import useFilterStore from "../store/filter.store";
+import useNotificationStore from "../store/notifications.store";
+import NotificationModal from "./NotificationModal";
 
 const Navbar: React.FC = () => {
   const { searchQuery, updateSearchQuery } = useFilterStore();
+
+  const { isModalOpen, setIsModalOpen } = useNotificationStore();
 
   return (
     <header className="w-full z-50 border-b border-b-slate-200 sticky top-0 bg-white/80 backdrop-blur-sm">
@@ -50,8 +53,14 @@ const Navbar: React.FC = () => {
             />
           </div>
 
-          <div className="relative hidden px-2 py-2 sm:flex items-center bg-emerald-50 border border-slate-200 rounded-xl hover:border-slate-300">
-            <Bell className="text-slate-800 w-5 h-5" />
+          <div className="relative">
+            <button onClick={() => setIsModalOpen(!isModalOpen)}>
+              <div className="relative hidden px-2 py-2 sm:flex items-center bg-emerald-50 border border-slate-200 rounded-xl hover:border-slate-300">
+                <Bell className="text-slate-800 w-5 h-5" />
+              </div>
+            </button>
+
+            <NotificationModal />
           </div>
 
           <Link
