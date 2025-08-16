@@ -7,6 +7,7 @@ type Item = z.infer<typeof itemSchema>;
 
 interface ItemStore {
   items: Item[];
+  item: Item | null;
   isLoading: Boolean;
   error: string | null;
   page: number;
@@ -14,11 +15,12 @@ interface ItemStore {
   hasMore: boolean;
   fetchItems: (filters: string, query: string) => Promise<void>;
   clearItems: () => void;
-  fetchItemById: (itemId: string) => Promise<Item>;
+  fetchItemById: (itemId: string) => Promise<void>;
 }
 
 const useItemStore = create<ItemStore>((set, get) => ({
   items: [],
+  item: null,
   isLoading: false,
   error: null,
   page: 1,
@@ -39,7 +41,6 @@ const useItemStore = create<ItemStore>((set, get) => ({
       }
 
       const response = await api.get(`/items?${params.toString()}`);
-      console.log(response);
 
       const { items: newItems, totalCount } = response.data.data;
 
@@ -69,9 +70,11 @@ const useItemStore = create<ItemStore>((set, get) => ({
     set({ items: [], page: 1 });
   },
   fetchItemById: async (itemId: string) => {
+    set({ isLoading: true, error: null, item: null });
     try {
       const response = await api.get(`/items/${itemId}`);
-      return response.data.data;
+
+      set({ item: response.data.data });
     } catch (err: any) {
       console.log("Failed to fetch item by ID: ", err);
 
@@ -79,9 +82,9 @@ const useItemStore = create<ItemStore>((set, get) => ({
         throw new Error("Something went wrong while fetching item");
       }
 
-      throw new Error(
-        err?.response?.data?.message || "Failed to fetch item by Id"
-      );
+      set({ error: err?.response?.data?.message });
+    } finally {
+      set({ isLoading: false });
     }
   },
 }));

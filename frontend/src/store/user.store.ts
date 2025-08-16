@@ -15,6 +15,7 @@ interface UserStore {
   signupUser: (data: SignupFormFields) => Promise<void>;
   signinUser: (data: SigninFormFields) => Promise<void>;
   checkAuth: () => Promise<void>;
+  fetchUserItems: () => Promise<any>;
 }
 
 type SignupFormFields = z.infer<typeof signupSchema>;
@@ -77,6 +78,17 @@ const useUserStore = create<UserStore>((set) => ({
       });
     } finally {
       set({ isLoading: false, isAuthChecked: true });
+    }
+  },
+  fetchUserItems: async () => {
+    try {
+      const response = await api.get("/user/me/items");
+
+      return response.data.data;
+    } catch (err: any) {
+      console.log(err);
+
+      throw new Error(err);
     }
   },
 }));
