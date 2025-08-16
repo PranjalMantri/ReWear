@@ -44,6 +44,9 @@ const proposeSwap = asyncHandler(async (req: Request, res: Response) => {
     message: `${proposer.fullname} proposed a swap for your item: - ${proposedItem.title}`,
   });
 
+  proposedItem.status = "inactive";
+  await proposedItem.save();
+
   res
     .status(201)
     .json(new ApiResponse(201, "Successfully proposed a swap", swap));
@@ -454,6 +457,34 @@ const completeSwap = asyncHandler(async (req: Request, res: Response) => {
   );
 });
 
+const getItemSwapDetails = asyncHandler(async (req: Request, res: Response) => {
+  const { itemId } = req.params;
+  const userId = req.user?._id;
+
+  if (!itemId) {
+    throw new ApiError(400, "Item ID is required");
+  }
+
+  const item = await Item.findById(itemId).populate("userId", "name");
+  if (!item) throw new ApiError(404, "Item not found");
+
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "Invalid user");
+
+  const itemSwap = await Swap.findOne({
+    proposedItemId: itemId,
+  });
+
+  console.log(itemSwap);
+
+  res.status(201).json(
+    new ApiResponse(201, "Succesfuly fetched item redemption details: ", {
+      itemSwapped: itemSwap ? true : false,
+      proposer: itemSwap?.proposer || null,
+    })
+  );
+});
+
 export {
   proposeSwap,
   getIncomingSwaps,
@@ -464,4 +495,5 @@ export {
   rejectSwap,
   cancelSwap,
   completeSwap,
+  getItemSwapDetails,
 };
