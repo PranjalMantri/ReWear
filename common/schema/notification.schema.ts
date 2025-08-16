@@ -22,3 +22,9 @@ export const notificationInputSchema = z.object({
   message: z.string(),
   isRead: z.boolean(),
 });
+
+export const notificationSchema = notificationInputSchema.extend({
+  _id: z.string(),
+  createdAt: z.iso.datetime().optional(),
+  updatedAt: z.iso.datetime().optional(),
+});

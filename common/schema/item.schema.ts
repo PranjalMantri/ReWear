@@ -66,6 +66,6 @@ export const itemUpdateSchema = z.object({
 
 export const itemSchema = itemInputSchema.extend({
   _id: z.string(),
-  createdAt: z.string().datetime().optional(),
-  updateAt: z.string().datetime().optional(),
+  createdAt: z.iso.datetime().optional(),
+  updateAt: z.iso.datetime().optional(),
 });
