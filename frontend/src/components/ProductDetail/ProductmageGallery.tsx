@@ -1,5 +1,5 @@
 import { useState } from "react";
-import useSwapStore from "../store/swap.store";
+import useSwapStore from "../../store/swap.store";
 
 interface ProductmageGalleryProps {
   images: string[];

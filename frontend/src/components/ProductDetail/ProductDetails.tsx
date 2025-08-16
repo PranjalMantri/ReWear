@@ -1,9 +1,9 @@
 import type z from "zod";
-import type { itemSchema } from "../../../common/schema/item.schema";
-import useRedeemStore from "../store/redeem.store";
+import type { itemSchema } from "../../../../common/schema/item.schema";
+import useRedeemStore from "../../store/redeem.store";
 import { useEffect, useState } from "react";
-import useUserStore from "../store/user.store";
-import useSwapStore from "../store/swap.store";
+import useUserStore from "../../store/user.store";
+import useSwapStore from "../../store/swap.store";
 import SwapModal from "./SwapModal";
 
 type Item = z.infer<typeof itemSchema>;

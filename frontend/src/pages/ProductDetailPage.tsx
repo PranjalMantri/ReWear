@@ -1,5 +1,5 @@
-import ProductmageGallery from "../components/ProductmageGallery";
-import ProductDetails from "../components/ProductDetails";
+import ProductmageGallery from "../components/ProductDetail/ProductmageGallery";
+import ProductDetails from "../components/ProductDetail/ProductDetails";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 import useItemStore from "../store/item.store";

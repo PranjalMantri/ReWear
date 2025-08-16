@@ -1,10 +1,10 @@
 import type z from "zod";
-import type { itemSchema } from "../../../common/schema/item.schema";
-import useSwapStore from "../store/swap.store";
+import type { itemSchema } from "../../../../common/schema/item.schema";
+import useSwapStore from "../../store/swap.store";
 import { useEffect, useState } from "react";
-import useUserStore from "../store/user.store";
+import useUserStore from "../../store/user.store";
 import { useParams } from "react-router-dom";
-import useItemStore from "../store/item.store";
+import useItemStore from "../../store/item.store";
 
 type Item = z.infer<typeof itemSchema>;
 
