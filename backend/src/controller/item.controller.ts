@@ -108,6 +108,7 @@ const getAllItems = asyncHandler(async (req: Request, res: Response) => {
 
   const filters: any = {
     status: "active",
+    userId: { $ne: req.user?._id },
   };
 
   if (category) filters.category = category;
