@@ -3,10 +3,12 @@ import { Link } from "react-router-dom";
 import useFilterStore from "../store/filter.store";
 import useNotificationStore from "../store/notifications.store";
 import NotificationModal from "./NotificationModal";
+import useUserStore from "../store/user.store";
+import profile from "../../public/profile.png";
 
 const Navbar: React.FC = () => {
   const { searchQuery, updateSearchQuery } = useFilterStore();
-
+  const { user } = useUserStore();
   const { isModalOpen, setIsModalOpen, notifications } = useNotificationStore();
 
   return (
@@ -19,26 +21,6 @@ const Navbar: React.FC = () => {
           >
             ReWear
           </Link>
-          <nav className="hidden flex-1 md:flex justify-center space-x-10">
-            <Link
-              to={"/redeem"}
-              className="text-slate-600 hover:text-emerald-600 transition-colors"
-            >
-              Redeem
-            </Link>
-            <Link
-              to={"/swap"}
-              className="text-slate-600 hover:text-emerald-600 transition-colors"
-            >
-              Swap
-            </Link>
-            <Link
-              to={"/donate"}
-              className="text-slate-600 hover:text-emerald-600 transition-colors"
-            >
-              Donate
-            </Link>
-          </nav>
         </div>
         <div className="flex gap-8">
           <div className="relative hidden sm:flex sm:item-center rounded-xl px-3 bg-emerald-50 border border-slate-200 hover:border-slate-300">
@@ -78,7 +60,7 @@ const Navbar: React.FC = () => {
             to={`/profile`}
           >
             <img
-              src={"https://avatar.iran.liara.run/public/1"}
+              src={user?.profilePicture || profile}
               alt="Profile"
               className="w-10 h-10 rounded-full object-cover"
             />
