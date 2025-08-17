@@ -3,9 +3,11 @@ import { Outlet } from "react-router-dom";
 
 function Layout() {
   return (
-    <div>
+    <div className="flex flex-col h-screen">
       <Navbar />
-      <Outlet />
+      <div className="flex-grow overflow-y-auto">
+        <Outlet />
+      </div>
     </div>
   );
 }
