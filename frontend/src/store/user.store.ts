@@ -4,14 +4,17 @@ import { z } from "zod";
 import type {
   signinSchema,
   signupSchema,
+  user,
 } from "../../../common/schema/user.schema";
+
+type TUser = z.infer<typeof user>;
 
 interface UserStore {
   isLoading: boolean;
   error: string | null;
   isUserLoggedIn: boolean;
   isAuthChecked: boolean;
-  user: Object | null;
+  user: TUser | null;
   signupUser: (data: SignupFormFields) => Promise<void>;
   signinUser: (data: SigninFormFields) => Promise<void>;
   checkAuth: () => Promise<void>;
