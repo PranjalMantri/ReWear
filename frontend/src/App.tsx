@@ -6,8 +6,8 @@ import useUserStore from "./store/user.store";
 import HomePage from "./pages/HomePage";
 import Layout from "./pages/Layout";
 import { useEffect } from "react";
-import RedirectIfLoggedIn from "./components/RedirectIfLoggedIn";
 import ProductDetailPage from "./pages/ProductDetailPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   const isUserLoggedIn = useUserStore((state) => state.isUserLoggedIn);
@@ -20,35 +20,24 @@ function App() {
     return <div></div>;
   }
 
-  if (!isUserLoggedIn) {
-    <Navigate to={"/"} replace />;
-  }
-
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={isUserLoggedIn ? <Layout /> : <Landing />}>
-          {isUserLoggedIn && <Route index element={<HomePage />} />}
-        </Route>
-        <Route
-          path="/signup"
-          element={
-            <RedirectIfLoggedIn>
-              <SignupPage />
-            </RedirectIfLoggedIn>
-          }
-        />
-        <Route
-          path="/signin"
-          element={
-            <RedirectIfLoggedIn>
-              <SigninPage />
-            </RedirectIfLoggedIn>
-          }
-        />
-        <Route element={<Layout />}>
-          <Route path="/items/:itemId" element={<ProductDetailPage />} />
-        </Route>
+        {isUserLoggedIn ? (
+          <Route element={<Layout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/items/:itemId" element={<ProductDetailPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        ) : (
+          <>
+            <Route path="/" element={<Landing />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/signin" element={<SigninPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </>
+        )}
       </Routes>
     </BrowserRouter>
   );
