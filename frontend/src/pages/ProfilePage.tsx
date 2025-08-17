@@ -3,13 +3,14 @@ import useUserStore from "../store/user.store";
 import profile from "../assets/profile.png";
 import { Plus } from "lucide-react";
 import api from "../util/api";
+import UserListings from "../components/UserListings";
 
 function ProfilePage() {
   const user = useUserStore((state) => state.user);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [totalItemsSwapped, setTotalItemsSwapped] = useState(0);
-  const [listedItem, setListedItems] = useState(0);
-  const [totalItemsListed, setTotalItemsListed] = useState(null);
+  const [listedItems, setListedItems] = useState([]);
+  const [totalItemsListed, setTotalItemsListed] = useState(0);
 
   useEffect(() => {
     const getTotalItemsSwapped = async () => {
@@ -140,7 +141,7 @@ function ProfilePage() {
           {activeTab == "dashboard" ? (
             <div>Dashboard</div>
           ) : (
-            <div>Manage Listings</div>
+            <UserListings items={listedItems} isLoading={false} />
           )}
         </div>
       </div>
