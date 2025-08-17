@@ -1,5 +1,9 @@
 import { create } from "zustand";
 import api from "../util/api";
+import { swapSchema } from "../../../common/schema/swap.schema";
+import type z from "zod";
+
+type TSwap = z.infer<typeof swapSchema>;
 
 interface SwapStore {
   isLoading: boolean;
@@ -14,12 +18,15 @@ interface SwapStore {
   isSwapModalOpen: boolean;
   setIsSwapModalOpen: (state: boolean) => void;
   resetSwapState: () => void;
+  swaps: TSwap[];
+  getSwaps: () => Promise<void>;
 }
 
 const useSwapStore = create<SwapStore>((set) => ({
   isLoading: false,
   error: null,
   swapSuccessful: false,
+  swaps: [],
   proposeSwap: async (
     proposedItemId: string,
     receiver: string,
@@ -90,6 +97,19 @@ const useSwapStore = create<SwapStore>((set) => ({
       swapSuccessful: false,
       isSwapModalOpen: false,
     });
+  },
+  getSwaps: async () => {
+    try {
+      const response = await api.get("/swap");
+
+      set({ swaps: response.data.data });
+    } catch (err: any) {
+      console.log("Failed to fetch user's swaps: ", err);
+
+      if (err.status == 500) {
+        throw new Error("Something went wrong while fetching swaps");
+      }
+    }
   },
 }));
 

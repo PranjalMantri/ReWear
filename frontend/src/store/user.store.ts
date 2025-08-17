@@ -6,8 +6,10 @@ import type {
   signupSchema,
   user,
 } from "../../../common/schema/user.schema";
+import type { itemSchema } from "../../../common/schema/item.schema";
 
 type TUser = z.infer<typeof user>;
+type Item = z.infer<typeof itemSchema>;
 
 interface UserStore {
   isLoading: boolean;
@@ -18,7 +20,8 @@ interface UserStore {
   signupUser: (data: SignupFormFields) => Promise<void>;
   signinUser: (data: SigninFormFields) => Promise<void>;
   checkAuth: () => Promise<void>;
-  fetchUserItems: () => Promise<any>;
+  fetchUserItems: () => Promise<void>;
+  userItems: Item[];
 }
 
 type SignupFormFields = z.infer<typeof signupSchema>;
@@ -29,6 +32,7 @@ const useUserStore = create<UserStore>((set) => ({
   error: null,
   isUserLoggedIn: false,
   user: null,
+  userItems: [],
   signupUser: async (data: SignupFormFields) => {
     try {
       set({ isLoading: true, error: null });
@@ -87,7 +91,7 @@ const useUserStore = create<UserStore>((set) => ({
     try {
       const response = await api.get("/user/me/items");
 
-      return response.data.data;
+      set({ userItems: response.data.data });
     } catch (err: any) {
       console.log(err);
 

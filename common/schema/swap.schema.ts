@@ -18,3 +18,9 @@ export const SwapInputSchema = z.object({
   proposerCompleted: z.boolean().optional().default(false),
   receiverCompleted: z.boolean().optional().default(false),
 });
+
+export const swapSchema = SwapInputSchema.extend({
+  _id: z.string(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+});

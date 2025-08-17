@@ -95,7 +95,6 @@ const getAllSwaps = asyncHandler(async (req: Request, res: Response) => {
 
   const swaps = await Swap.find({
     $or: [{ proposer: userId }, { receiver: userId }],
-    status: "completed",
   })
     .populate("receiver", "name email")
     .populate("proposer", "name email")

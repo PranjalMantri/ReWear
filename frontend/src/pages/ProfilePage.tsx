@@ -2,36 +2,23 @@ import { useEffect, useState } from "react";
 import useUserStore from "../store/user.store";
 import profile from "../assets/profile.png";
 import { Plus } from "lucide-react";
-import api from "../util/api";
 import UserListings from "../components/UserListings";
+import useSwapStore from "../store/swap.store";
 
 function ProfilePage() {
   const user = useUserStore((state) => state.user);
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [totalItemsSwapped, setTotalItemsSwapped] = useState(0);
-  const [listedItems, setListedItems] = useState([]);
-  const [totalItemsListed, setTotalItemsListed] = useState(0);
+
+  const { swaps, getSwaps } = useSwapStore();
+  const { userItems, fetchUserItems } = useUserStore();
 
   useEffect(() => {
     const getTotalItemsSwapped = async () => {
-      try {
-        const response = await api.get("/swap");
-
-        setTotalItemsSwapped(response.data.data.length || 0);
-      } catch (error) {
-        console.log(error);
-      }
+      await getSwaps();
     };
 
     const getTotalItemsListed = async () => {
-      try {
-        const response = await api.get("/items/me");
-
-        setTotalItemsListed(response.data.data.length || 0);
-        setListedItems(response.data.data);
-      } catch (error) {
-        console.log(error);
-      }
+      await fetchUserItems();
     };
 
     getTotalItemsSwapped();
@@ -74,13 +61,13 @@ function ProfilePage() {
           <div className="flex gap-2 w-full">
             <div className="border border-gray-300 w-1/2 py-2 rounded-sm shadow-sm">
               <p className="text-center font-bold text-xl text-gray-800">
-                {totalItemsListed}
+                {userItems.length}
               </p>
               <p className="text-center text-sm text-gray-600">Items Listed</p>
             </div>
             <div className="border border-gray-300 w-1/2 py-2 rounded-sm shadow-sm">
               <p className="text-center font-bold text-xl text-gray-800">
-                {totalItemsSwapped}
+                {swaps.length}
               </p>
               <p className="text-center text-sm text-gray-600">Items Swapped</p>
             </div>
@@ -141,7 +128,7 @@ function ProfilePage() {
           {activeTab == "dashboard" ? (
             <div>Dashboard</div>
           ) : (
-            <UserListings items={listedItems} isLoading={false} />
+            <UserListings items={userItems} isLoading={false} />
           )}
         </div>
       </div>
