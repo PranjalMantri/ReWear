@@ -166,6 +166,14 @@ const getAllItems = asyncHandler(async (req: Request, res: Response) => {
     );
 });
 
+const getUserItems = asyncHandler(async (req: Request, res: Response) => {
+  const items = await Item.find({ userId: req.user?._id });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, "Successfully fetched all the items", items));
+});
+
 const getItemById = asyncHandler(async (req: Request, res: Response) => {
   const itemId = req.params.itemId;
 
@@ -295,4 +303,11 @@ const deleteItem = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(new ApiResponse(200, "Item deleted successfully", {}));
 });
 
-export { createItem, getAllItems, getItemById, updateItem, deleteItem };
+export {
+  createItem,
+  getAllItems,
+  getItemById,
+  updateItem,
+  deleteItem,
+  getUserItems,
+};
