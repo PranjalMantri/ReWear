@@ -4,7 +4,7 @@ import useFilterStore from "../store/filter.store";
 import useNotificationStore from "../store/notifications.store";
 import NotificationModal from "./NotificationModal";
 import useUserStore from "../store/user.store";
-import profile from "../../public/profile.png";
+import profilePicture from "../assets/profile.png";
 
 const Navbar: React.FC = () => {
   const { searchQuery, updateSearchQuery } = useFilterStore();
@@ -60,7 +60,7 @@ const Navbar: React.FC = () => {
             to={`/profile`}
           >
             <img
-              src={user?.profilePicture || profile}
+              src={user?.profilePicture || profilePicture}
               alt="Profile"
               className="w-10 h-10 rounded-full object-cover"
             />

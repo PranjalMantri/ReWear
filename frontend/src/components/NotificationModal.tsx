@@ -16,7 +16,6 @@ function NotificationModal() {
     notifications,
     markNotificationAsRead,
     isLoading,
-    error,
   } = useNotificationStore();
 
   useEffect(() => {
@@ -31,14 +30,6 @@ function NotificationModal() {
     await markNotificationAsRead(notificationId);
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="text-red-500">{error}</div>;
-  }
-
   return (
     <div>
       <Dialog.Root open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -48,6 +39,8 @@ function NotificationModal() {
               Notifications
             </Dialog.Title>
             <Dialog.Description className="text-sm text-slate-500 my-2">
+              {isLoading ? "Loading..." : ""}
+
               {notifications.map((notification: TNotification) => (
                 <Notification
                   key={notification._id}
