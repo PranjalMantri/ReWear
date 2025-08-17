@@ -20,6 +20,7 @@ export const signinSchema = z.object({
 });
 
 export const user = z.object({
+  _id: z.string(),
   email: z.string(),
   fullname: z.string(),
   profilePicture: z.string().optional(),

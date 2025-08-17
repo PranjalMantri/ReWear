@@ -19,7 +19,6 @@ const ProductDetails = ({ item }: ProductDetailsProps) => {
 
   const [itemSwapped, setItemSwapped] = useState(false);
   const [swappedByCurrentUser, setSwappedByCurrentUser] = useState(false);
-  // const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
   const [selectedSwapItem, setSelectedSwapItem] = useState<any>();
 
   const { isSwapModalOpen, setIsSwapModalOpen } = useSwapStore();
@@ -85,7 +84,8 @@ const ProductDetails = ({ item }: ProductDetailsProps) => {
     statusLoading ||
     swapLoading ||
     swapSuccessful ||
-    itemSwapped;
+    itemSwapped ||
+    user?._id === item.userId;
 
   const handleAction = async () => {
     if (item.listingType === "redeem") {
