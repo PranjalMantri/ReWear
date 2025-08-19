@@ -100,11 +100,9 @@ const signup = asyncHandler(async (req: Request, res: Response) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  const userResponse = {
-    id: user._id,
-    fullname: user.fullname,
-    email: user.email,
-  };
+  const userResponse = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
 
   await Notification.create({
     receiverId: user._id,
@@ -152,6 +150,7 @@ const signin = asyncHandler(async (req: Request, res: Response) => {
 
   existingUser.refreshToken = refreshToken;
   existingUser.save();
+
   res.cookie("accessToken", accessToken, {
     ...cookieOptions,
     maxAge: 15 * 60 * 1000,
@@ -162,15 +161,11 @@ const signin = asyncHandler(async (req: Request, res: Response) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  const userResponse = {
-    id: existingUser._id,
-    fullname: existingUser.fullname,
-    email: existingUser.email,
-  };
+  const user = await User.findById(existingUser._id).select(
+    "-password -refreshToken"
+  );
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, "User signup succcessful", userResponse));
+  res.status(200).json(new ApiResponse(200, "User signup succcessful", user));
 });
 
 const logout = asyncHandler(async (req: Request, res: Response) => {
