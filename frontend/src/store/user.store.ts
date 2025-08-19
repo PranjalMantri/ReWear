@@ -36,9 +36,8 @@ const useUserStore = create<UserStore>((set) => ({
   signupUser: async (data: SignupFormFields) => {
     try {
       set({ isLoading: true, error: null });
-
       const response = await api.post("/user/signup", data);
-      set({ isUserLoggedIn: true, user: response.data.user });
+      set({ isUserLoggedIn: true, user: response.data.data.user });
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || "An unexpected error occured";
@@ -54,7 +53,7 @@ const useUserStore = create<UserStore>((set) => ({
       set({ isLoading: true, error: null });
 
       const response = await api.post("/user/signin", data);
-      set({ isUserLoggedIn: true, user: response.data.user });
+      set({ isUserLoggedIn: true, user: response.data.data });
     } catch (err: any) {
       console.log(err);
       const errorMessage =
