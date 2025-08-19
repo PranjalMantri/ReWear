@@ -96,10 +96,10 @@ const getAllSwaps = asyncHandler(async (req: Request, res: Response) => {
   const swaps = await Swap.find({
     $or: [{ proposer: userId }, { receiver: userId }],
   })
-    .populate("receiver", "name email")
-    .populate("proposer", "name email")
-    .populate("receiverItemId")
-    .populate("proposerItemId");
+    .populate("receiver", "fullname email")
+    .populate("proposer", "fullname email")
+    .populate("receivedItemId")
+    .populate("proposedItemId");
 
   res
     .status(200)
@@ -178,7 +178,7 @@ const acceptSwap = asyncHandler(async (req: Request, res: Response) => {
 
   await Item.findByIdAndUpdate(
     {
-      _id: swap.receiveItemId,
+      _id: swap.receivedItemId,
     },
     {
       status: "inactive",
@@ -255,7 +255,7 @@ const rejectSwap = asyncHandler(async (req: Request, res: Response) => {
 
   await Item.findByIdAndUpdate(
     {
-      _id: swap.receiveItemId,
+      _id: swap.receivedItemId,
     },
     {
       status: "active",
@@ -321,7 +321,7 @@ const cancelSwap = asyncHandler(async (req: Request, res: Response) => {
 
   await Item.findByIdAndUpdate(
     {
-      _id: swap.receiveItemId,
+      _id: swap.receivedItemId,
     },
     {
       status: "inactive",
@@ -442,7 +442,7 @@ const completeSwap = asyncHandler(async (req: Request, res: Response) => {
 
   await Item.findByIdAndUpdate(
     {
-      _id: swap.receiveItemId,
+      _id: swap.receivedItemId,
     },
     {
       status: "sold",

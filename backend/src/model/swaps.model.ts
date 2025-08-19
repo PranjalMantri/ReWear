@@ -30,7 +30,7 @@ const swapSchema = new Schema(
       ref: "User",
       required: true,
     },
-    receiveItemId: {
+    receivedItemId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Item",
       required: true,
