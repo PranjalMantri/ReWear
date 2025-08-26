@@ -1,7 +1,7 @@
 import type z from "zod";
 import type { itemSchema } from "../../../../common/schema/item.schema";
 import useSwapStore from "../../store/swap.store";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import useUserStore from "../../store/user.store";
 import { useParams } from "react-router-dom";
 import useItemStore from "../../store/item.store";
@@ -24,17 +24,14 @@ const SwapModal = ({
     proposeSwap,
   } = useSwapStore();
 
-  const [userItems, setUserItems] = useState<any>();
-
-  const { fetchUserItems } = useUserStore();
+  const { userItems, fetchUserItems } = useUserStore();
 
   const { itemId: proposedItemId } = useParams();
   const { item } = useItemStore();
 
   useEffect(() => {
     const getUserItems = async () => {
-      const response = await fetchUserItems();
-      setUserItems(response);
+      await fetchUserItems();
     };
 
     if (isSwapModalOpen) {
