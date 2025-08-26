@@ -1,5 +1,9 @@
 import { create } from "zustand";
 import api from "../util/api";
+import type z from "zod";
+import { redemptionSchema } from "../../../common/schema/redemption.schema";
+
+type TRedemption = z.infer<typeof redemptionSchema>;
 
 interface RedeemStore {
   isLoading: boolean;
@@ -8,12 +12,15 @@ interface RedeemStore {
   redeemItem: (itemId: string) => Promise<void>;
   getItemStatus: (itemId: string) => Promise<any>;
   resetRedemptionState: () => void;
+  redemptions: TRedemption[];
+  getRedemptions: () => Promise<void>;
 }
 
 const useRedeemStore = create<RedeemStore>((set) => ({
   isLoading: false,
   error: null,
   redemptionSuccessful: false,
+  redemptions: [],
   redeemItem: async (itemId: string) => {
     set({ isLoading: true, error: null });
 
@@ -67,6 +74,20 @@ const useRedeemStore = create<RedeemStore>((set) => ({
   },
   resetRedemptionState: () => {
     set({ error: null, isLoading: false, redemptionSuccessful: false });
+  },
+  getRedemptions: async () => {
+    try {
+      const response = await api.get("/redemptions");
+
+      set({ redemptions: response.data.data });
+      console.log(response.data.data);
+    } catch (err: any) {
+      console.log("Failed to fetch user's redemptions: ", err);
+
+      if (err.status == 500) {
+        throw new Error("Something went wrong while fetching redemptions");
+      }
+    }
   },
 }));
 

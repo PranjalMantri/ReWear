@@ -30,7 +30,7 @@ const useSwapStore = create<SwapStore>((set) => ({
   proposeSwap: async (
     proposedItemId: string,
     receiver: string,
-    receiveItemId: string
+    receivedItemId: string
   ) => {
     set({ isLoading: true, error: null });
 
@@ -38,8 +38,9 @@ const useSwapStore = create<SwapStore>((set) => ({
       const response = await api.post(`/swap/propose`, {
         proposedItemId,
         receiver,
-        receiveItemId,
+        receivedItemId,
       });
+
       set({ swapSuccessful: true });
       return response.data.data;
     } catch (error: any) {
