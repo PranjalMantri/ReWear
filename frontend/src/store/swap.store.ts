@@ -20,9 +20,13 @@ interface SwapStore {
   resetSwapState: () => void;
   swaps: TSwap[];
   getSwaps: () => Promise<void>;
+  acceptSwap: (swapId: string) => Promise<void>;
+  rejectSwap: (swapId: string) => Promise<void>;
+  cancelSwap: (swapId: string) => Promise<void>;
+  completeSwap: (swapId: string) => Promise<void>;
 }
 
-const useSwapStore = create<SwapStore>((set) => ({
+const useSwapStore = create<SwapStore>((set, get) => ({
   isLoading: false,
   error: null,
   swapSuccessful: false,
@@ -110,6 +114,90 @@ const useSwapStore = create<SwapStore>((set) => ({
       if (err.status == 500) {
         throw new Error("Something went wrong while fetching swaps");
       }
+    }
+  },
+  acceptSwap: async (swapId: string) => {
+    const { swaps } = get();
+
+    set({
+      swaps: swaps.map((swap) =>
+        swap._id === swapId ? { ...swap, status: "accepted" } : swap
+      ),
+    });
+
+    try {
+      await api.put(`/swap/${swapId}/accept`);
+
+      await get().getSwaps();
+    } catch (err: any) {
+      console.error("Failed to accept swap:", err);
+
+      const errorMessage =
+        err?.response?.data?.message ||
+        "Something went wrong while accepting swap";
+
+      throw new Error(errorMessage);
+    }
+  },
+  rejectSwap: async (swapId: string) => {
+    const { swaps } = get();
+
+    set({
+      swaps: swaps.map((swap) =>
+        swap._id === swapId ? { ...swap, status: "rejected" } : swap
+      ),
+    });
+
+    try {
+      await api.put(`/swap/${swapId}/reject`);
+
+      await get().getSwaps();
+    } catch (err: any) {
+      console.error("Failed to reject swap:", err);
+
+      const errorMessage =
+        err?.response?.data?.message ||
+        "Something went wrong while rejectign swap";
+
+      throw new Error(errorMessage);
+    }
+  },
+  cancelSwap: async (swapId: string) => {
+    const { swaps } = get();
+
+    set({
+      swaps: swaps.map((swap) =>
+        swap._id === swapId ? { ...swap, status: "cancelled" } : swap
+      ),
+    });
+
+    try {
+      await api.put(`/swap/${swapId}/cancel`);
+
+      await get().getSwaps();
+    } catch (err: any) {
+      console.error("Failed to cancel swap:", err);
+
+      const errorMessage =
+        err?.response?.data?.message ||
+        "Something went wrong while cancelling swap";
+
+      throw new Error(errorMessage);
+    }
+  },
+  completeSwap: async (swapId: string) => {
+    try {
+      await api.put(`/swap/${swapId}/complete`);
+
+      await get().getSwaps();
+    } catch (err: any) {
+      console.error("Failed to complete swap:", err);
+
+      const errorMessage =
+        err?.response?.data?.message ||
+        "Something went wrong while complete swap";
+
+      throw new Error(errorMessage);
     }
   },
 }));

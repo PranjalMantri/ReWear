@@ -1,6 +1,7 @@
 import type z from "zod";
 import type { swapSchema } from "../../../../common/schema/swap.schema";
 import StatusBadge from "./StatusBadge";
+import useSwapStore from "../../store/swap.store";
 
 type Swap = z.infer<typeof swapSchema>;
 
@@ -11,19 +12,24 @@ const SwapActions = ({
   swap: Swap;
   currentUserId: string;
 }) => {
-  const handleAccept = (swapId: string) =>
-    console.log(`Accepting swap: ${swapId}`);
+  const { acceptSwap, rejectSwap, cancelSwap, completeSwap } = useSwapStore();
 
-  const handleReject = (swapId: string) =>
-    console.log(`Rejecting swap: ${swapId}`);
+  const handleAccept = async (swapId: string) => {
+    await acceptSwap(swapId);
+  };
 
-  const handleCancel = (swapId: string) =>
-    console.log(`Cancelling swap: ${swapId}`);
+  const handleReject = async (swapId: string) => {
+    await rejectSwap(swapId);
+  };
 
-  const handleMarkCompleted = (swapId: string) =>
-    console.log(`Marking completed: ${swapId}`);
+  const handleCancel = async (swapId: string) => {
+    await cancelSwap(swapId);
+  };
 
-  // PENDING — only receiver can accept/reject
+  const handleMarkCompleted = async (swapId: string) => {
+    await completeSwap(swapId);
+  };
+
   if (swap.status === "pending") {
     if (swap.receiver?._id === currentUserId) {
       return (
@@ -88,7 +94,7 @@ const SwapActions = ({
 
     return (
       <span className="text-sm text-gray-500">
-        Waiting for other user to complete...
+        Waiting for other user to complete the swap
       </span>
     );
   }
