@@ -2,28 +2,27 @@ import { useEffect, useState } from "react";
 import useUserStore from "../store/user.store";
 import profile from "../assets/profile.png";
 import { Plus } from "lucide-react";
-import UserListings from "../components/UserListings";
 import useSwapStore from "../store/swap.store";
+import { useShallow } from "zustand/react/shallow";
+import Dashboard from "../components/Profile/Dashboard";
+import UserListings from "../components/Profile/UserListings";
 
 function ProfilePage() {
-  const user = useUserStore((state) => state.user);
   const [activeTab, setActiveTab] = useState("dashboard");
 
-  const { swaps, getSwaps } = useSwapStore();
-  const { userItems, fetchUserItems } = useUserStore();
+  const user = useUserStore(useShallow((state) => state.user));
+  const userItems = useUserStore(useShallow((state) => state.userItems));
+  const fetchUserItems = useUserStore(
+    useShallow((state) => state.fetchUserItems)
+  );
+
+  const getSwaps = useSwapStore(useShallow((state) => state.getSwaps));
+  const swaps = useSwapStore(useShallow((state) => state.swaps));
 
   useEffect(() => {
-    const getTotalItemsSwapped = async () => {
-      await getSwaps();
-    };
-
-    const getTotalItemsListed = async () => {
-      await fetchUserItems();
-    };
-
-    getTotalItemsSwapped();
-    getTotalItemsListed();
-  }, []);
+    fetchUserItems();
+    getSwaps();
+  }, [fetchUserItems, getSwaps]);
 
   if (!user) {
     return (
@@ -34,7 +33,7 @@ function ProfilePage() {
   }
 
   return (
-    <div className="w-full h-full grid grid-cols-1 md:grid-cols-5 overflow-hidden">
+    <div className="w-full h-full grid grid-cols-1 md:grid-cols-5">
       {/* Left side - Profile Card */}
       <div className="col-span-1 flex flex-col items-center mt-4 p-4 md:p-0 gap-10">
         <div className="flex flex-col items-center">
@@ -124,9 +123,9 @@ function ProfilePage() {
           </nav>
         </div>
 
-        <div className="mt-8">
+        <div>
           {activeTab == "dashboard" ? (
-            <div>Dashboard</div>
+            <Dashboard />
           ) : (
             <UserListings items={userItems} isLoading={false} />
           )}

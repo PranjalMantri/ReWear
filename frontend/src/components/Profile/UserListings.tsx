@@ -1,6 +1,6 @@
 import type z from "zod";
-import type { itemSchema } from "../../../common/schema/item.schema";
-import ItemGrid from "./Home/ItemGrid";
+import type { itemSchema } from "../../../../common/schema/item.schema";
+import ItemGrid from "../Home/ItemGrid";
 
 type Items = z.infer<typeof itemSchema>;
 
@@ -10,7 +10,11 @@ interface UserListingsProps {
 }
 
 const UserListings: React.FC<UserListingsProps> = ({ items, isLoading }) => {
-  return <ItemGrid items={items} isLoading={isLoading} />;
+  return (
+    <div className="mt-4">
+      <ItemGrid items={items} isLoading={isLoading} />
+    </div>
+  );
 };
 
 export default UserListings;
