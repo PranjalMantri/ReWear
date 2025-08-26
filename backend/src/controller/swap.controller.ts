@@ -149,11 +149,17 @@ const acceptSwap = asyncHandler(async (req: Request, res: Response) => {
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "Invalid user");
 
-  const swap = await Swap.findById(swapId).populate("itemId");
+  const swap = await Swap.findById(swapId)
+    .populate("proposedItemId")
+    .populate("receivedItemId");
   if (!swap) throw new ApiError(404, "Swap not found");
 
   const proposer = await User.findById(swap.proposer);
   if (!proposer)
+    throw new ApiError(400, "User that proposed the swap does not exist");
+
+  const receiver = await User.findById(swap.receiver);
+  if (!receiver)
     throw new ApiError(400, "User that proposed the swap does not exist");
 
   if (swap.receiver.toString() !== userId.toString()) {
@@ -167,23 +173,13 @@ const acceptSwap = asyncHandler(async (req: Request, res: Response) => {
   swap.status = "accepted";
   await swap.save();
 
-  await Item.findByIdAndUpdate(
-    {
-      _id: swap.proposedItemId,
-    },
-    {
-      status: "inactive",
-    }
-  );
+  await Item.findByIdAndUpdate((swap.proposedItemId as any)._id, {
+    status: "inactive",
+  });
 
-  await Item.findByIdAndUpdate(
-    {
-      _id: swap.receivedItemId,
-    },
-    {
-      status: "inactive",
-    }
-  );
+  await Item.findByIdAndUpdate((swap.receivedItemId as any)._id, {
+    status: "inactive",
+  });
 
   // the user that accepted the swap calls this endpoit,
   // we send notification to the user who actually proposed the swap
@@ -191,7 +187,7 @@ const acceptSwap = asyncHandler(async (req: Request, res: Response) => {
   await Notification.create({
     receiverId: proposer._id,
     type: "swap_accepted",
-    message: `${user.fullname} accepted your swap proposal for item: - ${
+    message: `${receiver.fullname} accepted your swap proposal for item: - ${
       (swap.proposedItemId as any).title
     }`,
   });
@@ -218,11 +214,17 @@ const rejectSwap = asyncHandler(async (req: Request, res: Response) => {
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "Invalid user");
 
-  const swap = await Swap.findById(swapId);
+  const swap = await Swap.findById(swapId)
+    .populate("proposedItemId")
+    .populate("receivedItemId");
   if (!swap) throw new ApiError(404, "Swap not found");
 
   const proposer = await User.findById(swap.proposer);
   if (!proposer)
+    throw new ApiError(400, "User that proposed the swap does not exist");
+
+  const receiver = await User.findById(swap.receiver);
+  if (!receiver)
     throw new ApiError(400, "User that proposed the swap does not exist");
 
   if (swap.receiver.toString() !== userId.toString()) {
@@ -244,23 +246,13 @@ const rejectSwap = asyncHandler(async (req: Request, res: Response) => {
     }`,
   });
 
-  await Item.findByIdAndUpdate(
-    {
-      _id: swap.proposedItemId,
-    },
-    {
-      status: "active",
-    }
-  );
+  await Item.findByIdAndUpdate((swap.proposedItemId as any)._id, {
+    status: "inactive",
+  });
 
-  await Item.findByIdAndUpdate(
-    {
-      _id: swap.receivedItemId,
-    },
-    {
-      status: "active",
-    }
-  );
+  await Item.findByIdAndUpdate((swap.receivedItemId as any)._id, {
+    status: "inactive",
+  });
 
   res
     .status(201)
@@ -284,11 +276,17 @@ const cancelSwap = asyncHandler(async (req: Request, res: Response) => {
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "Invalid user");
 
-  const swap = await Swap.findById(swapId);
+  const swap = await Swap.findById(swapId)
+    .populate("proposedItemId")
+    .populate("receivedItemId");
   if (!swap) throw new ApiError(404, "Swap not found");
 
   const receiver = await User.findById(swap.receiver);
   if (!receiver)
+    throw new ApiError(400, "User that proposed the swap does not exist");
+
+  const proposer = await User.findById(swap.proposer);
+  if (!proposer)
     throw new ApiError(400, "User that proposed the swap does not exist");
 
   if (swap.proposer.toString() !== userId.toString()) {
@@ -303,30 +301,20 @@ const cancelSwap = asyncHandler(async (req: Request, res: Response) => {
   await swap.save();
 
   await Notification.create({
-    receiverId: user._id,
+    receiverId: swap.receiver,
     type: "swap_cancelled",
-    message: `${receiver.fullname} rejected your swap proposal for item: - ${
+    message: `${proposer.fullname} cancelled your swap proposal for item: - ${
       (swap.proposedItemId as any).title
     }`,
   });
 
-  await Item.findByIdAndUpdate(
-    {
-      _id: swap.proposedItemId,
-    },
-    {
-      status: "inactive",
-    }
-  );
+  await Item.findByIdAndUpdate((swap.proposedItemId as any)._id, {
+    status: "inactive",
+  });
 
-  await Item.findByIdAndUpdate(
-    {
-      _id: swap.receivedItemId,
-    },
-    {
-      status: "inactive",
-    }
-  );
+  await Item.findByIdAndUpdate((swap.receivedItemId as any)._id, {
+    status: "inactive",
+  });
 
   res
     .status(201)
@@ -356,6 +344,10 @@ const completeSwap = asyncHandler(async (req: Request, res: Response) => {
   const proposer = await User.findById(swap.proposer);
   if (!proposer)
     throw new ApiError(400, "User that proposed the swap does not exist");
+
+  const receiver = await User.findById(swap.receiver);
+  if (!receiver)
+    throw new ApiError(400, "User that received the swap does not exist");
 
   const isProposer = swap.proposer.toString() === userId.toString();
   const isReceiver = swap.receiver.toString() === userId.toString();
@@ -415,21 +407,21 @@ const completeSwap = asyncHandler(async (req: Request, res: Response) => {
         message: "Receiver earned 15 points for completing the swap",
       }
     );
+
+    await Notification.create({
+      receiverId: receiver._id,
+      type: "swap_completed",
+      message: `Your swap with ${proposer.fullname} is successfully complete. You have also been awarded some points.`,
+    });
+
+    await Notification.create({
+      receiverId: proposer._id,
+      type: "swap_completed",
+      message: `Your swap with ${receiver.fullname} is successfuly complete. You have also been awarded some points`,
+    });
   }
 
   await swap.save();
-
-  await Notification.create({
-    receiverId: user._id,
-    type: "swap_completed",
-    message: `Your swap with ${proposer.fullname} is successfully complete. You have also been awarded some points.`,
-  });
-
-  await Notification.create({
-    receiverId: proposer._id,
-    type: "swap_completed",
-    message: `Your swap with ${user.fullname} is successfuly complete. You have also been awarded some points`,
-  });
 
   await Item.findByIdAndUpdate(
     {
@@ -474,8 +466,6 @@ const getItemSwapDetails = asyncHandler(async (req: Request, res: Response) => {
   const itemSwap = await Swap.findOne({
     proposedItemId: itemId,
   });
-
-  console.log(itemSwap);
 
   res.status(201).json(
     new ApiResponse(201, "Succesfuly fetched item redemption details: ", {
