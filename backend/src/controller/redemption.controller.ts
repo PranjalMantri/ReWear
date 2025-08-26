@@ -7,6 +7,7 @@ import Item from "../model/item.model.ts";
 import Points from "../model/points.model.ts";
 import Notification from "../model/notification.model.ts";
 import User from "../model/user.model.ts";
+import mongoose from "mongoose";
 
 const redeemItem = asyncHandler(async (req: Request, res: Response) => {
   const { itemId } = req.params;
@@ -78,9 +79,58 @@ const redeemItem = asyncHandler(async (req: Request, res: Response) => {
 const getAllRedemptions = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?._id;
 
-  const redemptions = await Redemption.find({ userId })
-    .populate("userId", "name email")
-    .populate("itemId");
+  const redemptions = await Redemption.aggregate([
+    // Join with items
+    {
+      $lookup: {
+        from: "items",
+        localField: "itemId",
+        foreignField: "_id",
+        as: "itemId",
+      },
+    },
+    { $unwind: "$itemId" },
+
+    // Join with users (redeemer)
+    {
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "userId",
+      },
+    },
+    { $unwind: { path: "$userId", preserveNullAndEmptyArrays: true } },
+
+    // Filter: either user is redeemer or item.owner
+    {
+      $match: {
+        $or: [
+          { "userId._id": new mongoose.Types.ObjectId(userId) },
+          { "itemId.userId": new mongoose.Types.ObjectId(userId) },
+        ],
+      },
+    },
+
+    {
+      $project: {
+        _id: 1,
+        userId: {
+          _id: "$userId._id",
+          fullname: "$userId.fullname",
+          email: "$userId.email",
+        },
+        itemId: "$itemId",
+        pointsUsed: 1,
+        status: 1,
+        confirmedBySender: 1,
+        confirmedByReceiver: 1,
+        meta: 1,
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    },
+  ]);
 
   res
     .status(200)
