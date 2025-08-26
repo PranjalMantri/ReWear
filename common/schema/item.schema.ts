@@ -64,9 +64,11 @@ export const itemUpdateSchema = z.object({
   ),
 });
 
-export const itemSchema = itemInputSchema.extend({
-  _id: z.string(),
-  userId: z.string(),
-  createdAt: z.iso.datetime().optional(),
-  updateAt: z.iso.datetime().optional(),
-});
+export const itemSchema = itemInputSchema
+  .extend({
+    _id: z.string(),
+    userId: z.string(),
+    createdAt: z.iso.datetime().optional(),
+    updatedAt: z.iso.datetime().optional(),
+  })
+  .loose();

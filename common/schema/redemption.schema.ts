@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { itemSchema } from "./item.schema.ts";
 
 export const RedemptionStatusEnum = z.enum([
   "pending",
@@ -17,3 +18,17 @@ export const RedemptionInputSchema = z.object({
   confirmedBySender: z.boolean().optional().default(false),
   confirmedByReceiver: z.boolean().optional().default(false),
 });
+
+export const redemptionSchema = RedemptionInputSchema.extend({
+  _id: z.string(),
+  userId: z
+    .object({
+      _id: z.string(),
+      fullname: z.string(),
+      email: z.string().email(),
+    })
+    .optional(),
+  itemId: itemSchema,
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+}).loose();
