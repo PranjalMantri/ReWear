@@ -6,6 +6,8 @@ import useUserStore from "../../store/user.store";
 import { useParams } from "react-router-dom";
 import useItemStore from "../../store/item.store";
 
+import ItemCard from "../Home/ItemCard";
+
 type Item = z.infer<typeof itemSchema>;
 
 interface SwapModalProps {
@@ -67,19 +69,23 @@ const SwapModal = ({
 
           {userItems && userItems.length > 0 ? (
             <>
-              <div className="space-y-4 max-h-60 overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2  gap-4 max-h-60 overflow-y-auto">
                 {userItems.map((userItem: any) => (
                   <div
                     key={userItem._id}
                     onClick={() => setSelectedSwapItem(userItem)}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                    className={`relative cursor-pointer ${
                       selectedSwapItem?._id === userItem._id
-                        ? "border-emerald-500 bg-emerald-50"
-                        : "border-gray-200 hover:bg-gray-50"
+                        ? "ring-2 ring-emerald-500"
+                        : ""
                     }`}
                   >
-                    <h4 className="font-semibold">{userItem.title}</h4>
-                    <p className="text-sm text-gray-500">{userItem.brand}</p>
+                    <ItemCard {...userItem} />
+                    {selectedSwapItem?._id === userItem._id && (
+                      <span className="absolute top-2 right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded">
+                        Selected
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
