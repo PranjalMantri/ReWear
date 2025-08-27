@@ -14,9 +14,12 @@ interface RedeemStore {
   resetRedemptionState: () => void;
   redemptions: TRedemption[];
   getRedemptions: () => Promise<void>;
+  cancelRedemption: (redemptionId: string) => Promise<void>;
+  markItemReceived: (redemptionId: string) => Promise<void>;
+  markItemShipped: (redemptionId: string) => Promise<void>;
 }
 
-const useRedeemStore = create<RedeemStore>((set) => ({
+const useRedeemStore = create<RedeemStore>((set, get) => ({
   isLoading: false,
   error: null,
   redemptionSuccessful: false,
@@ -80,13 +83,90 @@ const useRedeemStore = create<RedeemStore>((set) => ({
       const response = await api.get("/redemptions");
 
       set({ redemptions: response.data.data });
-      console.log(response.data.data);
     } catch (err: any) {
       console.log("Failed to fetch user's redemptions: ", err);
 
       if (err.status == 500) {
         throw new Error("Something went wrong while fetching redemptions");
       }
+    }
+  },
+  cancelRedemption: async (redemptionId: string) => {
+    console.log("cancel redemption was called");
+
+    const { redemptions } = get();
+
+    set({
+      redemptions: redemptions.map((redemption) =>
+        redemption._id === redemptionId
+          ? { ...redemption, status: "cancelled" }
+          : redemption
+      ),
+    });
+
+    try {
+      const response = await api.put(`/redemptions/${redemptionId}/cancel`);
+
+      console.log(response);
+      await get().getRedemptions();
+    } catch (err: any) {
+      console.error("Failed to cancel redemption:", err);
+
+      const errorMessage =
+        err?.response?.data?.message ||
+        "Something went wrong while cancelling redemption";
+
+      throw new Error(errorMessage);
+    }
+  },
+  markItemReceived: async (redemptionId: string) => {
+    const { redemptions } = get();
+
+    set({
+      redemptions: redemptions.map((redemption) =>
+        redemption._id === redemptionId
+          ? { ...redemption, confirmedByReceiver: true }
+          : redemption
+      ),
+    });
+
+    try {
+      await api.put(`/redemptions/${redemptionId}/mark-received`);
+
+      await get().getRedemptions();
+    } catch (err: any) {
+      console.error("Failed to mark item as received:", err);
+
+      const errorMessage =
+        err?.response?.data?.message ||
+        "Something went wrong while marking item as received";
+
+      throw new Error(errorMessage);
+    }
+  },
+  markItemShipped: async (redemptionId: string) => {
+    const { redemptions } = get();
+
+    set({
+      redemptions: redemptions.map((redemption) =>
+        redemption._id === redemptionId
+          ? { ...redemption, confirmedBySender: true }
+          : redemption
+      ),
+    });
+
+    try {
+      await api.put(`/redemptions/${redemptionId}/mark-shipped`);
+
+      await get().getRedemptions();
+    } catch (err: any) {
+      console.error("Failed to mark item as shipped:", err);
+
+      const errorMessage =
+        err?.response?.data?.message ||
+        "Something went wrong while marking item as shipped";
+
+      throw new Error(errorMessage);
     }
   },
 }));
