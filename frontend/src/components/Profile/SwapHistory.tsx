@@ -124,60 +124,68 @@ const SwapHistory = ({
         Swap History
       </h2>
 
-      <div className="hidden sm:grid sm:grid-cols-12 gap-4 text-sm font-medium text-gray-500 px-4 pb-3 border-b border-gray-200">
-        <div className="col-span-5">Items</div>
-        <div className="col-span-2">Date</div>
-        <div className="col-span-2">Status</div>
-        <div className="col-span-3 text-right">Actions</div>
-      </div>
+      {swaps.length > 0 ? (
+        <div>
+          <div className="hidden sm:grid sm:grid-cols-12 gap-4 text-sm font-medium text-gray-500 px-4 pb-3 border-b border-gray-200">
+            <div className="col-span-5">Items</div>
+            <div className="col-span-2">Date</div>
+            <div className="col-span-2">Status</div>
+            <div className="col-span-3 text-right">Actions</div>
+          </div>
 
-      <div className="divide-y divide-gray-100">
-        {swaps.map((swap) => {
-          const isProposer = swap.proposer?._id === currentUserId;
+          <div className="divide-y divide-gray-100">
+            {swaps.map((swap) => {
+              const isProposer = swap.proposer?._id === currentUserId;
 
-          const proposed =
-            typeof swap.proposedItemId === "string"
-              ? { _id: swap.proposedItemId, title: swap.proposedItemId }
-              : swap.proposedItemId;
+              const proposed =
+                typeof swap.proposedItemId === "string"
+                  ? { _id: swap.proposedItemId, title: swap.proposedItemId }
+                  : swap.proposedItemId;
 
-          const received =
-            typeof swap.receivedItemId === "string" ||
-            swap.receivedItemId == null
-              ? {
-                  _id: String(swap.receivedItemId ?? ""),
-                  title: String(swap.receivedItemId ?? ""),
-                }
-              : swap.receivedItemId;
+              const received =
+                typeof swap.receivedItemId === "string" ||
+                swap.receivedItemId == null
+                  ? {
+                      _id: String(swap.receivedItemId ?? ""),
+                      title: String(swap.receivedItemId ?? ""),
+                    }
+                  : swap.receivedItemId;
 
-          const myItem = isProposer ? proposed : received;
-          const theirItem = isProposer ? received : proposed;
+              const myItem = isProposer ? proposed : received;
+              const theirItem = isProposer ? received : proposed;
 
-          return (
-            <div
-              key={swap._id}
-              className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center px-4 py-5"
-            >
-              <div className="col-span-12 sm:col-span-5 flex flex-col">
-                <div className="font-semibold text-gray-800">
-                  {myItem.title}
+              return (
+                <div
+                  key={swap._id}
+                  className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center px-4 py-5"
+                >
+                  <div className="col-span-12 sm:col-span-5 flex flex-col">
+                    <div className="font-semibold text-gray-800">
+                      {myItem.title}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      for {theirItem.title}
+                    </div>
+                  </div>
+                  <div className="col-span-12 sm:col-span-2 text-gray-600">
+                    {new Date(swap.createdAt).toLocaleDateString()}
+                  </div>
+                  <div className="col-span-12 sm:col-span-2">
+                    <StatusBadge status={swap.status} />
+                  </div>
+                  <div className="col-span-12 sm:col-span-3 flex justify-end">
+                    <SwapActions swap={swap} currentUserId={currentUserId} />
+                  </div>
                 </div>
-                <div className="text-sm text-gray-500">
-                  for {theirItem.title}
-                </div>
-              </div>
-              <div className="col-span-12 sm:col-span-2 text-gray-600">
-                {new Date(swap.createdAt).toLocaleDateString()}
-              </div>
-              <div className="col-span-12 sm:col-span-2">
-                <StatusBadge status={swap.status} />
-              </div>
-              <div className="col-span-12 sm:col-span-3 flex justify-end">
-                <SwapActions swap={swap} currentUserId={currentUserId} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 w-full flex justify-center text-gray-800">
+          No Swaps to show...
+        </div>
+      )}
     </div>
   );
 };
