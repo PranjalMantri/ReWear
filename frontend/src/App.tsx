@@ -8,6 +8,7 @@ import Layout from "./pages/Layout";
 import { useEffect } from "react";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ProfilePage from "./pages/ProfilePage";
+import ListItemPage from "./pages/ListItem";
 
 function App() {
   const isUserLoggedIn = useUserStore((state) => state.isUserLoggedIn);
@@ -28,6 +29,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/items/:itemId" element={<ProductDetailPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/list-item" element={<ListItemPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         ) : (

@@ -48,7 +48,10 @@ export const itemInputSchema = z.object({
   status: ItemStatusEnum.default("active"),
   color: z.string().optional(),
   brand: z.string().optional(),
-  images: z.array(z.string()).optional().default([]),
+  images: z
+    .array(z.any())
+    .min(1, "At least one image is required.")
+    .max(5, "You can only upload up to 5 images."),
 });
 
 export const itemUpdateSchema = z.object({

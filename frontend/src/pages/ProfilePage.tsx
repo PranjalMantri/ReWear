@@ -90,7 +90,12 @@ function ProfilePage() {
             Dashboard
           </div>
 
-          <div className="flex w-full items-center justify-between bg-white hover:bg-gray-100 px-3 py-2 border border-gray-200 rounded-sm text-base text-gray-700 cursor-pointer">
+          <div
+            onClick={() => {
+              navigate("/list-item");
+            }}
+            className="flex w-full items-center justify-between bg-white hover:bg-gray-100 px-3 py-2 border border-gray-200 rounded-sm text-base text-gray-700 cursor-pointer"
+          >
             <div className="flex items-center gap-2">
               <PlusSquare className="w-5 h-5 text-gray-600" />
               List an Item
