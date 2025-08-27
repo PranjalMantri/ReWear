@@ -23,6 +23,8 @@ interface UserStore {
   fetchUserItems: () => Promise<void>;
   userItems: Item[];
   getUserPoints: () => Promise<number>;
+  logout: () => Promise<void>;
+  setIsUserLoggedIn: (isUserLoggedIn: boolean) => void;
 }
 
 type SignupFormFields = z.infer<typeof signupSchema>;
@@ -32,6 +34,9 @@ const useUserStore = create<UserStore>((set) => ({
   isLoading: false,
   error: null,
   isUserLoggedIn: false,
+  setIsUserLoggedIn: (isUserLoggedIn: boolean) => {
+    set({ isUserLoggedIn });
+  },
   user: null,
   userItems: [],
   signupUser: async (data: SignupFormFields) => {
@@ -109,6 +114,15 @@ const useUserStore = create<UserStore>((set) => ({
 
       throw new Error(err);
     } finally {
+    }
+  },
+  logout: async () => {
+    try {
+      await api.get("/user/logout");
+    } catch (err: any) {
+      console.log(err);
+
+      throw new Error(err);
     }
   },
 }));

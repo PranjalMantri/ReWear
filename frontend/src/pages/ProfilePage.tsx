@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import useUserStore from "../store/user.store";
 import profile from "../assets/profile.png";
-import { Plus } from "lucide-react";
+import { Boxes, LayoutDashboard, LogOut, Plus, PlusSquare } from "lucide-react";
 import useSwapStore from "../store/swap.store";
 import { useShallow } from "zustand/react/shallow";
 import Dashboard from "../components/Profile/Dashboard";
 import UserListings from "../components/Profile/UserListings";
+import { useNavigate } from "react-router-dom";
 
 function ProfilePage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [userPoints, setUserPoints] = useState<number>();
 
@@ -19,6 +21,7 @@ function ProfilePage() {
   const getUserPoints = useUserStore(
     useShallow((state) => state.getUserPoints)
   );
+  const logout = useUserStore(useShallow((state) => state.logout));
 
   const getSwaps = useSwapStore(useShallow((state) => state.getSwaps));
   const swaps = useSwapStore(useShallow((state) => state.swaps));
@@ -35,6 +38,12 @@ function ProfilePage() {
     fetchPoints();
   }, [fetchUserItems, getSwaps]);
 
+  const handleLogout = async () => {
+    await logout();
+    useUserStore.getState().setIsUserLoggedIn(false);
+    navigate("/", { replace: true });
+  };
+
   if (!user) {
     return (
       <div className="flex justify-center items-center h-full text-gray-500 text-lg">
@@ -46,7 +55,7 @@ function ProfilePage() {
   return (
     <div className="w-full h-full grid grid-cols-1 md:grid-cols-5">
       {/* Left side - Profile Card */}
-      <div className="col-span-1 flex flex-col items-center mt-4 p-4 md:p-0 gap-10">
+      <div className="col-span-1 flex flex-col items-center mt-4 p-4 md:p-0 gap-6">
         <div className="flex flex-col items-center">
           <img
             src={user.profilePicture || profile}
@@ -60,7 +69,6 @@ function ProfilePage() {
             {"@" + user.fullname.replace(/\s/g, "").toLowerCase()}
           </div>
         </div>
-
         <div className="w-full flex flex-col items-center gap-2 px-6">
           <div className="border border-gray-300 py-2 rounded-sm shadow-sm w-full">
             <p className="text-center font-bold text-2xl text-gray-800">
@@ -87,20 +95,34 @@ function ProfilePage() {
         <div className="w-full px-6 flex flex-col gap-2">
           <div
             onClick={() => setActiveTab("dashboard")}
-            className="bg-white hover:bg-gray-100 px-3 py-2 border border-gray-200 rounded-sm text-base text-gray-700 cursor-pointer"
+            className="flex w-full items-center gap-2 bg-white hover:bg-gray-100 px-3 py-2 border border-gray-200 rounded-sm text-base text-gray-700 cursor-pointer"
           >
+            <LayoutDashboard className="w-5 h-5 text-gray-600" />
             Dashboard
           </div>
 
-          <div className="flex w-full justify-between bg-white hover:bg-gray-100 px-3 py-2 border border-gray-200 rounded-sm text-base text-gray-700 cursor-pointer">
-            List an Item <Plus className="w-5 h-5 text-gray-600" />
+          <div className="flex w-full items-center justify-between bg-white hover:bg-gray-100 px-3 py-2 border border-gray-200 rounded-sm text-base text-gray-700 cursor-pointer">
+            <div className="flex items-center gap-2">
+              <PlusSquare className="w-5 h-5 text-gray-600" />
+              List an Item
+            </div>
+            <Plus className="w-5 h-5 text-gray-600" />
           </div>
 
           <div
             onClick={() => setActiveTab("listings")}
-            className="flex w-full justify-between bg-white hover:bg-gray-100 px-3 py-2 border border-gray-200 rounded-sm text-base text-gray-700 cursor-pointer"
+            className="flex w-full items-center gap-2 bg-white hover:bg-gray-100 px-3 py-2 border border-gray-200 rounded-sm text-base text-gray-700 cursor-pointer"
           >
+            <Boxes className="w-5 h-5 text-gray-600" />
             Manage Listings
+          </div>
+
+          <div
+            onClick={() => handleLogout()}
+            className="flex w-full items-center gap-2 bg-white hover:bg-gray-100 px-3 py-2 border border-gray-200 rounded-sm text-base text-gray-700 cursor-pointer"
+          >
+            <LogOut className="w-5 h-5 text-gray-600" />
+            Logout
           </div>
         </div>
       </div>
