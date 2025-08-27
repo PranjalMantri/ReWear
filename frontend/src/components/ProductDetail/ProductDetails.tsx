@@ -109,8 +109,12 @@ const ProductDetails = ({ item }: ProductDetailsProps) => {
 
         <div className="mt-6 bg-gray-50 rounded-lg p-4 divide-y divide-gray-200">
           <div className="flex justify-between py-2">
-            <span className="text-sm text-gray-500">Brand</span>
-            <span className="font-medium text-gray-800">{item.brand}</span>
+            {item?.brand && (
+              <>
+                <span className="text-sm text-gray-500">Brand</span>
+                <span className="font-medium text-gray-800">{item.brand}</span>
+              </>
+            )}
           </div>
           <div className="flex justify-between py-2">
             <span className="text-sm text-gray-500">Size</span>
