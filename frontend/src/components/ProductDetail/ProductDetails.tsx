@@ -56,7 +56,6 @@ const ProductDetails = ({ item }: ProductDetailsProps) => {
           }
         } else if (item.listingType === "swap") {
           const response = await getSwapStatus(item._id);
-          console.log(response);
           if (response.itemSwapped) {
             setItemSwapped(true);
             if (response.proposer === (user as any)._id) {

@@ -209,7 +209,6 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
   ) as UserPayload | null;
 
   if (!decodedToken) {
-    console.log("decode token");
     throw new ApiError(401, "Token is invalid or expired");
   }
 

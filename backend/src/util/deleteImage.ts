@@ -18,7 +18,6 @@ export const deleteImage = async (imageUrl: string) => {
       return true;
     }
 
-    console.log("Image deletion failed: ", response);
     return false;
   } catch (error) {
     console.log("Error deleting image: ", error);

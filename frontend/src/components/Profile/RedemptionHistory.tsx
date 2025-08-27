@@ -20,7 +20,6 @@ const RedemptionActions = ({
   };
 
   const handleCancel = async (redemptionId: string) => {
-    console.log("cancelling redemption");
     await cancelRedemption(redemptionId);
   };
 

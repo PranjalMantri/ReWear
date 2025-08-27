@@ -105,9 +105,8 @@ const useRedeemStore = create<RedeemStore>((set, get) => ({
     });
 
     try {
-      const response = await api.put(`/redemptions/${redemptionId}/cancel`);
+      await api.put(`/redemptions/${redemptionId}/cancel`);
 
-      console.log(response);
       await get().getRedemptions();
     } catch (err: any) {
       console.error("Failed to cancel redemption:", err);

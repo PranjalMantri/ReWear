@@ -127,7 +127,6 @@ const useUserStore = create<UserStore>((set) => ({
     }
   },
   updateProfilePicture: async (profilePicture: File) => {
-    console.log("updateing profile picture");
     const formData = new FormData();
 
     formData.append("profile-picture", profilePicture);
