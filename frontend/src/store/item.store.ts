@@ -8,7 +8,7 @@ type Item = z.infer<typeof itemSchema>;
 interface ItemStore {
   items: Item[];
   item: Item | null;
-  isLoading: Boolean;
+  isLoading: boolean;
   error: string | null;
   page: number;
   limit: number;
@@ -16,6 +16,7 @@ interface ItemStore {
   fetchItems: (filters: string, query: string) => Promise<void>;
   clearItems: () => void;
   fetchItemById: (itemId: string) => Promise<void>;
+  createItem: (data: FormData) => Promise<Item>;
 }
 
 const useItemStore = create<ItemStore>((set, get) => ({
@@ -85,6 +86,20 @@ const useItemStore = create<ItemStore>((set, get) => ({
       set({ error: err?.response?.data?.message });
     } finally {
       set({ isLoading: false });
+    }
+  },
+  createItem: async (data: FormData) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await api.post("/items", data);
+      set({ isLoading: false });
+      return response.data.data;
+    } catch (err: any) {
+      console.error("Failed to create item:", err);
+      const errorMessage =
+        err?.response?.data?.message || "An unexpected error occurred.";
+      set({ error: errorMessage, isLoading: false });
+      throw new Error(errorMessage);
     }
   },
 }));
