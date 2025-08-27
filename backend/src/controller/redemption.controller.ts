@@ -179,12 +179,6 @@ const markItemShipped = asyncHandler(async (req: Request, res: Response) => {
   redemption.confirmedBySender = true;
   await redemption.save();
 
-  await Notification.create({
-    receiverId: receiver._id,
-    type: "item_shipped",
-    message: `${user.fullname} has shipped your item`,
-  });
-
   res
     .status(200)
     .json(
@@ -258,7 +252,7 @@ const cancelRedemption = asyncHandler(async (req: Request, res: Response) => {
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "Invalid user id");
 
-  const redemption = await Redemption.findById(redemptionId);
+  const redemption = await Redemption.findById(redemptionId).populate("itemId");
   if (!redemption) throw new ApiError(404, "Redemption Id is required");
 
   const sender = await User.findById((redemption.itemId as any).userId);
@@ -281,10 +275,14 @@ const cancelRedemption = asyncHandler(async (req: Request, res: Response) => {
   redemption.status = "cancelled";
   await redemption.save();
 
-  const poinstRefunded = await Points.create({
+  await Points.create({
     userId,
     type: "spent",
     amount: redemption.pointsUsed,
+  });
+
+  await User.findByIdAndUpdate(userId, {
+    $inc: { points: redemption.pointsUsed },
   });
 
   await Notification.create({
