@@ -25,6 +25,7 @@ interface UserStore {
   getUserPoints: () => Promise<number>;
   logout: () => Promise<void>;
   setIsUserLoggedIn: (isUserLoggedIn: boolean) => void;
+  updateProfilePicture: (profilePicture: File) => Promise<void>;
 }
 
 type SignupFormFields = z.infer<typeof signupSchema>;
@@ -123,6 +124,28 @@ const useUserStore = create<UserStore>((set) => ({
       console.log(err);
 
       throw new Error(err);
+    }
+  },
+  updateProfilePicture: async (profilePicture: File) => {
+    console.log("updateing profile picture");
+    const formData = new FormData();
+
+    formData.append("profile-picture", profilePicture);
+
+    set({ isLoading: true });
+    try {
+      const response = await api.put("/user/profile-picture", formData);
+
+      set({ user: response.data.data });
+    } catch (err: any) {
+      console.log(err);
+
+      const errorMessage =
+        err.response?.data?.message || "An unexpected error occured";
+
+      throw new Error(errorMessage);
+    } finally {
+      set({ isLoading: false });
     }
   },
 }));

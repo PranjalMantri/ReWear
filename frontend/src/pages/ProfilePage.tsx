@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import useUserStore from "../store/user.store";
-import profile from "../assets/profile.png";
+
 import { Boxes, LayoutDashboard, LogOut, Plus, PlusSquare } from "lucide-react";
 import useSwapStore from "../store/swap.store";
 import { useShallow } from "zustand/react/shallow";
 import Dashboard from "../components/Profile/Dashboard";
 import UserListings from "../components/Profile/UserListings";
 import { useNavigate } from "react-router-dom";
+import UserAvatar from "../components/UserAvatar";
 
 function ProfilePage() {
   const navigate = useNavigate();
@@ -56,19 +57,7 @@ function ProfilePage() {
     <div className="w-full h-full grid grid-cols-1 md:grid-cols-5">
       {/* Left side - Profile Card */}
       <div className="col-span-1 flex flex-col items-center mt-4 p-4 md:p-0 gap-6">
-        <div className="flex flex-col items-center">
-          <img
-            src={user.profilePicture || profile}
-            alt="Profile"
-            className="rounded-full w-36 h-36 object-cover ring-8 ring-emerald-50"
-          />
-          <div className="text-xl font-semibold text-gray-800 mt-2">
-            {user.fullname}
-          </div>
-          <div className="text-sm text-gray-600">
-            {"@" + user.fullname.replace(/\s/g, "").toLowerCase()}
-          </div>
-        </div>
+        <UserAvatar />
         <div className="w-full flex flex-col items-center gap-2 px-6">
           <div className="border border-gray-300 py-2 rounded-sm shadow-sm w-full">
             <p className="text-center font-bold text-2xl text-gray-800">
