@@ -22,6 +22,7 @@ interface UserStore {
   checkAuth: () => Promise<void>;
   fetchUserItems: () => Promise<void>;
   userItems: Item[];
+  getUserPoints: () => Promise<number>;
 }
 
 type SignupFormFields = z.infer<typeof signupSchema>;
@@ -95,6 +96,19 @@ const useUserStore = create<UserStore>((set) => ({
       console.log(err);
 
       throw new Error(err);
+    }
+  },
+  getUserPoints: async () => {
+    try {
+      const response = await api.get("/user/me/points");
+
+      const { points } = response.data.data;
+      return points;
+    } catch (err: any) {
+      console.log(err);
+
+      throw new Error(err);
+    } finally {
     }
   },
 }));

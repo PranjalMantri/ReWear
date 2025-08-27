@@ -9,11 +9,15 @@ import UserListings from "../components/Profile/UserListings";
 
 function ProfilePage() {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [userPoints, setUserPoints] = useState<number>();
 
   const user = useUserStore(useShallow((state) => state.user));
   const userItems = useUserStore(useShallow((state) => state.userItems));
   const fetchUserItems = useUserStore(
     useShallow((state) => state.fetchUserItems)
+  );
+  const getUserPoints = useUserStore(
+    useShallow((state) => state.getUserPoints)
   );
 
   const getSwaps = useSwapStore(useShallow((state) => state.getSwaps));
@@ -22,6 +26,13 @@ function ProfilePage() {
   useEffect(() => {
     fetchUserItems();
     getSwaps();
+
+    const fetchPoints = async () => {
+      const points = await getUserPoints();
+      setUserPoints(points);
+    };
+
+    fetchPoints();
   }, [fetchUserItems, getSwaps]);
 
   if (!user) {
@@ -53,7 +64,7 @@ function ProfilePage() {
         <div className="w-full flex flex-col items-center gap-2 px-6">
           <div className="border border-gray-300 py-2 rounded-sm shadow-sm w-full">
             <p className="text-center font-bold text-2xl text-gray-800">
-              {user?.points}
+              {userPoints}
             </p>
             <p className="text-center text-sm text-gray-600">Total Points</p>
           </div>
